@@ -1,0 +1,10 @@
+# Hashes of file build rules.
+4a4412a5052221eecfd2256dddba7939 ../Layer-Samples/data/overlay-frag.spv
+a559fe5383d25fb548ff2b93570d4ae4 ../Layer-Samples/data/overlay-vert.spv
+1803acf28d24a8713f7c073169f943a2 API-Samples/CMakeFiles/samples-binary-dir-symlinks
+58c6fe943fceedc055821cc9b38baec0 Layer-Samples/Overlay/overlay.json
+75ed86cc8f73d7afa5880791cec1f002 Sample-Programs/Hologram/HelpersDispatchTable.cpp
+6dc012239825354b33a6a75b6b74f12c Sample-Programs/Hologram/HelpersDispatchTable.h
+e352269092fb2f26afc80f6d4dc11be0 Sample-Programs/Hologram/Hologram.frag.h
+18759c50cb526549b4587ae3ea0a8dda Sample-Programs/Hologram/Hologram.push_constant.vert.h
+bcfd842a08b19b7a71cf14bb652ec7d9 Sample-Programs/Hologram/Hologram.vert.h

@@ -1,0 +1,55 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_fc997/fast"
+/usr/bin/make -f CMakeFiles/cmTC_fc997.dir/build.make CMakeFiles/cmTC_fc997.dir/build
+make[1]: Entering directory '/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_fc997.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -fvisibility=hidden    -o CMakeFiles/cmTC_fc997.dir/CheckSymbolExists.c.o   -c /home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_fc997
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fc997.dir/link.txt --verbose=1
+/usr/bin/cc  -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -fvisibility=hidden     -rdynamic CMakeFiles/cmTC_fc997.dir/CheckSymbolExists.c.o  -o cmTC_fc997 
+CMakeFiles/cmTC_fc997.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_fc997.dir/build.make:97: recipe for target 'cmTC_fc997' failed
+make[1]: *** [cmTC_fc997] Error 1
+make[1]: Leaving directory '/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_fc997/fast' failed
+make: *** [cmTC_fc997/fast] Error 2
+
+File /home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_726a2/fast"
+/usr/bin/make -f CMakeFiles/cmTC_726a2.dir/build.make CMakeFiles/cmTC_726a2.dir/build
+make[1]: Entering directory '/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_726a2.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -fvisibility=hidden -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_726a2.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_726a2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_726a2.dir/link.txt --verbose=1
+/usr/bin/cc  -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -fvisibility=hidden -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_726a2.dir/CheckFunctionExists.c.o  -o cmTC_726a2 -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_726a2.dir/build.make:97: recipe for target 'cmTC_726a2' failed
+make[1]: *** [cmTC_726a2] Error 1
+make[1]: Leaving directory '/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_726a2/fast' failed
+make: *** [cmTC_726a2/fast] Error 2
+
+
