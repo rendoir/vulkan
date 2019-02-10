@@ -7,3 +7,4 @@ shader:
 
 clean:
 	rm -rf roar
+	rm -rf shaders/*.spv
