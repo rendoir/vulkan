@@ -1,5 +1,0 @@
-/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/examples/build/CMakeFiles/rebuild_cache.dir
-/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/examples/build/CMakeFiles/edit_cache.dir
-/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/examples/build/CMakeFiles/cubepp.dir
-/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/examples/build/CMakeFiles/vulkaninfo.dir
-/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/examples/build/CMakeFiles/cube.dir

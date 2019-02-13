@@ -1,1 +1,0 @@
-/home/rendoir/Downloads/vulkansdk-linux-x86_64-1.1.82.1/1.1.82.1/samples/API-Samples/run_all_samples.sh
