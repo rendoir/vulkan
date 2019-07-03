@@ -1,3 +1,2 @@
-/roar
-/shaders/*.spv
+.vscode
 /build
