@@ -1,5 +1,5 @@
-INC_DIR = -I./include -isystem ./extern -isystem ./extern/GLFW/include -isystem ./extern/Vulkan/x86_64/include
-LIB_DIR = -L./extern/GLFW/lib -L./extern/Vulkan/x86_64/lib
+INC_DIR = -I./include -isystem ./extern -isystem ./extern/GLFW/include -isystem ./extern/Vulkan/include
+LIB_DIR = -L./extern/GLFW/lib -L./extern/Vulkan/lib
 LIB = -lglfw3 -ldl -lX11 -lpthread -lXxf86vm -lXrandr -lXi -lXinerama -lXcursor -lvulkan
 
 CXX = g++
@@ -7,7 +7,7 @@ CXX_STD = -std=c++17
 CXX_WARNINGS = 
 CXX_FLAGS = $(CXX_STD) $(CXX_WARNINGS) $(INC_DIR) $(LIB_DIR)
 
-SHADERC = ./extern/Vulkan/x86_64/bin/glslangValidator
+SHADERC = ./extern/Vulkan/bin/glslangValidator
 
 # Final binary
 BIN = roar
