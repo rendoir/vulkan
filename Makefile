@@ -4,7 +4,7 @@ LIB = -lglfw3 -ldl -lX11 -lpthread -lXxf86vm -lXrandr -lXi -lXinerama -lXcursor 
 
 CXX = g++
 CXX_STD = -std=c++17
-CXX_WARNINGS = 
+CXX_WARNINGS = -Wall
 CXX_FLAGS = $(CXX_STD) $(CXX_WARNINGS) $(INC_DIR) $(LIB_DIR)
 
 SHADERC = ./extern/Vulkan/bin/glslangValidator
