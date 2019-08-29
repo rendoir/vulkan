@@ -1,4 +1,4 @@
-INC_DIR = -I./include -isystem ./extern -isystem ./extern/GLFW/include -isystem ./extern/Vulkan/include
+INC_DIR = -I./include -isystem ./extern -isystem ./extern/GLFW/include -isystem ./extern/Vulkan/include -isystem ./extern/json -isystem ./extern/stb
 LIB_DIR = -L./extern/GLFW/lib -L./extern/Vulkan/lib
 LIB = -lglfw3 -ldl -lX11 -lpthread -lXxf86vm -lXrandr -lXi -lXinerama -lXcursor -lvulkan
 
