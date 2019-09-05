@@ -1070,7 +1070,8 @@ void Renderer::createNodeDescriptorSet(Node *node) {
 
 void Renderer::updateUniformBuffer(uint32_t currentImage) {
     // Scene
-    uboMatrices.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    uboMatrices.camPos = glm::vec3(0.0f, 0.0f, 1.0f);
+    uboMatrices.view = glm::lookAt(uboMatrices.camPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     uboMatrices.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
     uboMatrices.projection[1][1] *= -1;
     
