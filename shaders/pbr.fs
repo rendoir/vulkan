@@ -54,7 +54,7 @@ vec3 lightPositions[numberLights] = vec3[](
 
 
 // Normal Mapping without Precomputed Tangents by Christian Schüler
-vec3 getNormal() {
+vec3 getNormalFromMap() {
 	vec2 inUV = material.normalTextureSet == 0 ? inUV0 : inUV1;
 	vec3 tangentNormal = texture(normalMap, inUV).xyz * 2.0 - 1.0;
 
@@ -71,6 +71,9 @@ vec3 getNormal() {
 	return normalize(TBN * tangentNormal);
 }
 
+vec3 getNormal() {
+	return (material.normalTextureSet > -1) ? getNormalFromMap() : normalize(inNormal);
+}
 
 vec4 sRGBtoLinear(vec4 srgbIn) {
 	return vec4(pow(srgbIn.rgb, vec3(gamma)), srgbIn.a);
@@ -154,14 +157,11 @@ void getMetallicRoughness(out float metallic, out float roughness) {
 		vec4 mrSample = texture(physicalDescriptorMap, material.physicalTextureSet == 0 ? inUV0 : inUV1);
 		roughness = mrSample.g * roughness;
 		metallic = mrSample.b * metallic;
-	} else {
-		roughness = clamp(roughness, 0.0, 1.0);
-		metallic = clamp(metallic, 0.0, 1.0);
 	}
 }
 
 
-// Trowbridge-Reitz GGX Distribution Function
+// Trowbridge-Reitz GGX Normal Distribution Function
 float NormalDistributionFunction(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
     float aSquare = a * a;
@@ -172,7 +172,7 @@ float NormalDistributionFunction(vec3 N, vec3 H, float roughness) {
     float denominator = (NdotHSquare * (aSquare - 1.0) + 1.0);
     denominator = PI * denominator * denominator;
 
-    return numerator / denominator;
+    return numerator / max(denominator, 1.175494e-38); // Prevent division by zero.
 }
 
 
@@ -206,8 +206,8 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 radiance, vec4 albedo, float metallic, fl
 	vec3  F = FresnelFunction(max(dot(H, V), 0.0), F0);
 
 	vec3 numerator = D * G * F; 
-	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001; // Prevent division by zero.
-	vec3 specular = numerator / denominator;
+	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0); 
+	vec3 specular = numerator / max(denominator, 1.175494e-38); // Prevent division by zero.
 	
 	vec3 kS = F;
 	vec3 kD = vec3(1.0) - kS;
