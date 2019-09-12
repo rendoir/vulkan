@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 #include "Model.hpp"
+#include "Camera.hpp"
 
 #include <array>
 #include <chrono>
@@ -26,6 +27,7 @@ Renderer::Renderer() {
     createSyncObjects();
     
     loadAssets();
+    initCamera();
     createUniformBuffers();
     createDescriptors();
     createPipeline();
@@ -37,6 +39,7 @@ Renderer::~Renderer() {
 
     model->destroy(); delete model;
     empty->destroy(); delete empty;
+    delete camera;
 
     for (size_t i = 0; i < settings.maxFramesInFlight; i++) {
         vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
@@ -116,6 +119,7 @@ void Renderer::recreateSwapchain() {
     createColorResources();
     createDepthResources();
     createFramebuffers();
+    updateCameraAspectRatio();
     createUniformBuffers();
     createDescriptors();
     createPipeline();
@@ -816,6 +820,17 @@ void Renderer::loadAssets() {
     std::cout << "Texture loaded" << std::endl;
 }
 
+void Renderer::initCamera() {
+    camera = new Camera();
+    camera->setPosition(glm::vec3(0.0f, 0.0f, 1.0f));
+    camera->setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
+    camera->setPerspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 1000.0f);
+}
+
+void Renderer::updateCameraAspectRatio() {
+    camera->setAspectRatio(swapChainExtent.width / (float) swapChainExtent.height);
+}
+
 void Renderer::createUniformBuffers() {
     uniformBuffers.resize(swapChainImages.size());
     uniformBuffersMemory.resize(swapChainImages.size());
@@ -973,7 +988,7 @@ void Renderer::createDescriptors() {
 
 void Renderer::run() {
     while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+        handleInputs();
         renderFrame();
     }
 
@@ -1070,10 +1085,9 @@ void Renderer::createNodeDescriptorSet(Node *node) {
 
 void Renderer::updateUniformBuffer(uint32_t currentImage) {
     // Scene
-    uboMatrices.camPos = glm::vec3(0.0f, 0.0f, 1.0f);
-    uboMatrices.view = glm::lookAt(uboMatrices.camPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    uboMatrices.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
-    uboMatrices.projection[1][1] *= -1;
+    uboMatrices.camPos = camera->getPosition();
+    uboMatrices.view = camera->getView();
+    uboMatrices.projection = camera->getProjection();
     
     // Center and scale model
     float scale = (1.0f / std::max(model->aabb[0][0], std::max(model->aabb[1][1], model->aabb[2][2]))) * 0.5f;
@@ -1085,12 +1099,6 @@ void Renderer::updateUniformBuffer(uint32_t currentImage) {
     uboMatrices.model[1][1] = scale;
     uboMatrices.model[2][2] = scale;
     uboMatrices.model = glm::translate(uboMatrices.model, translate);
-
-    // TODO - Remove when there's an interactable camera
-    static auto startTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-    uboMatrices.model = glm::rotate(uboMatrices.model, time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     void* data;
     vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(uboMatrices), 0, &data);
@@ -1675,4 +1683,9 @@ void Renderer::DestroyDebugUtilsMessengerEXT() {
     if (func != nullptr) {
         func(instance, debugMessenger, nullptr);
     }
+}
+
+void Renderer::handleInputs() {
+    glfwPollEvents();
+    camera->control->handleInput(window);
 }

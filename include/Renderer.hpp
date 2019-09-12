@@ -10,6 +10,7 @@
 struct Model;
 struct Node;
 struct Texture;
+class Camera;
 
 class Renderer {
 public:
@@ -62,6 +63,7 @@ public:
     // Scene
     Model *model;
     Texture *empty;
+    Camera *camera;
 
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
@@ -96,12 +98,14 @@ private:
     void createFramebuffers();
     void createSyncObjects();
     void loadAssets();
+    void initCamera();
     void createUniformBuffers();
     void createDescriptors();
     void createPipeline();
     void recordCommandBuffers();
 
     void renderFrame();
+    void handleInputs();
     void renderNode(Node *node, uint32_t cbIndex);
     void createNodeDescriptorSet(Node* node);
     void updateUniformBuffer(uint32_t currentImage);
@@ -123,6 +127,7 @@ private:
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
     VkFormat findDepthFormat();
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void updateCameraAspectRatio();
     VkCommandBuffer beginSingleTimeCommands();
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
