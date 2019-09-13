@@ -1,22 +1,17 @@
 #include "Camera.hpp"
 
 Camera::Camera() {
-    control = new CameraControl(this);
     updateViewMatrix();
     updateProjectionMatrix();
 }
 
-Camera::~Camera() {
-    delete control;
-}
-
 void Camera::setPosition(glm::vec3 position) {
-    this->position = position;
+    transform.position = position;
     updateViewMatrix();
 }
 
-void Camera::setTarget(glm::vec3 target) {
-    this->target = target;
+void Camera::setRotation(glm::vec3 rotation) {
+    transform.rotation = rotation;
     updateViewMatrix();
 }
 
@@ -34,7 +29,18 @@ void Camera::setAspectRatio(float aspectRatio) {
 }
 
 void Camera::updateViewMatrix() {
-    view = glm::lookAt(position, target, up);
+    glm::mat4 rotM = glm::mat4(1.0f);
+    glm::mat4 transM;
+
+    rotM = glm::rotate(rotM, glm::radians(transform.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    rotM = glm::rotate(rotM, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotM = glm::rotate(rotM, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    transM = glm::translate(glm::mat4(1.0f), transform.position * glm::vec3(-1.0f, -1.0f, -1.0f));
+
+    if (type == CameraType::FIRST_PERSON)
+        view = rotM * transM;
+    else view = transM * rotM;
 }
 
 void Camera::updateProjectionMatrix() {
@@ -45,13 +51,14 @@ void Camera::updateProjectionMatrix() {
 
 CameraControl::CameraControl(Camera* camera) {
     this->camera = camera;
-    firstMouse = true;
-    distance = 1.0f;
-    pitch = 0.0f;
-    yaw = 180.0f;
 }
 
-void CameraControl::handleInput(GLFWwindow *window) {
+CameraControl::~CameraControl() { }
+
+OrbitControl::OrbitControl(Camera* camera) : 
+    CameraControl(camera) { }
+
+void OrbitControl::handleInput(GLFWwindow *window) {
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
@@ -68,22 +75,15 @@ void CameraControl::handleInput(GLFWwindow *window) {
     lastMouseY = ypos;
 
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
-        // TODO - Fix pitch flip
-        pitch -= yoffset * orbitSensitivity;
-        yaw -= xoffset * orbitSensitivity;
+        glm::vec3 rotation = camera->getRotation();
+        rotation.x -= yoffset * orbitSensitivity;
+        rotation.y += xoffset * orbitSensitivity;
+        camera->setRotation(rotation);
     }
 
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
-        distance += yoffset * zoomSensitivity;
-        distance = glm::max(distance, 0.0f);
+        float distanceOffset = yoffset * zoomSensitivity;
+        glm::vec3 position = camera->getPosition() + glm::vec3(0, 0, distanceOffset);
+        camera->setPosition(position);
     }
-
-    float verticalDistance = distance * glm::sin(glm::radians(pitch));
-    float horizontalDistance = distance * glm::cos(glm::radians(pitch));
-
-    glm::vec3 position;
-    position.x = camera->getTarget().x - horizontalDistance * glm::sin(glm::radians(yaw));
-    position.y = camera->getTarget().y + verticalDistance;
-    position.z = camera->getTarget().z - horizontalDistance * glm::cos(glm::radians(yaw));
-    camera->setPosition(position);
 }

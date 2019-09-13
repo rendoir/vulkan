@@ -40,6 +40,7 @@ Renderer::~Renderer() {
     model->destroy(); delete model;
     empty->destroy(); delete empty;
     delete camera;
+    delete cameraControl;
 
     for (size_t i = 0; i < settings.maxFramesInFlight; i++) {
         vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
@@ -823,8 +824,10 @@ void Renderer::loadAssets() {
 void Renderer::initCamera() {
     camera = new Camera();
     camera->setPosition(glm::vec3(0.0f, 0.0f, 1.0f));
-    camera->setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
+    camera->setRotation(glm::vec3(0.0f, 0.0f, 0.0f));
     camera->setPerspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 1000.0f);
+    
+    cameraControl = new OrbitControl(camera);
 }
 
 void Renderer::updateCameraAspectRatio() {
@@ -1085,7 +1088,7 @@ void Renderer::createNodeDescriptorSet(Node *node) {
 
 void Renderer::updateUniformBuffer(uint32_t currentImage) {
     // Scene
-    uboMatrices.camPos = camera->getPosition();
+    uboMatrices.camPos = camera->type == CameraType::FIRST_PERSON ? camera->getPosition() : toOrbital(camera->getPosition(), camera->getRotation());
     uboMatrices.view = camera->getView();
     uboMatrices.projection = camera->getProjection();
     
@@ -1687,5 +1690,5 @@ void Renderer::DestroyDebugUtilsMessengerEXT() {
 
 void Renderer::handleInputs() {
     glfwPollEvents();
-    camera->control->handleInput(window);
+    cameraControl->handleInput(window);
 }

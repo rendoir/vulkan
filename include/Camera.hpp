@@ -8,16 +8,21 @@
 
 #include <GLFW/glfw3.h>
 
+#include "Utils.hpp"
 
 class CameraControl;
+
+
+enum CameraType {
+    FIRST_PERSON,
+    THIRD_PERSON
+};
+
 
 class Camera 
 {
 private:
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 1.0f);
-    glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
-
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    Transform transform;
 
     float fov = glm::radians(45.0f);
     float aspectRatio = 1.0f;
@@ -32,40 +37,44 @@ private:
     void updateProjectionMatrix();
 
 public:
-    CameraControl *control;
+    CameraType type = CameraType::THIRD_PERSON;
 
 public:
     Camera();
-    ~Camera();
     void setPosition(glm::vec3 position);
-    void setTarget(glm::vec3 target);
+    void setRotation(glm::vec3 rotation);
     void setPerspective(float fov, float aspectRatio, float near, float far);
     void setAspectRatio(float aspectRatio);
 
-    glm::mat4 inline getView() { return view; };
-    glm::mat4 inline getProjection() { return projection; };
-    glm::vec3 inline getPosition() { return position; };
-    glm::vec3 inline getTarget() { return target; };
+    glm::mat4 inline getView() const { return view; };
+    glm::mat4 inline getProjection() const { return projection; };
+    glm::vec3 inline getPosition() const { return transform.position; };
+    glm::vec3 inline getRotation() const { return transform.rotation; };
 };
 
 
 class CameraControl {
+protected:
+    Camera *camera;
+
+public:
+    CameraControl(Camera *camera);
+    virtual ~CameraControl();
+    virtual void handleInput(GLFWwindow *window) = 0;
+};
+
+
+class OrbitControl : public CameraControl {
 public:
     float orbitSensitivity = 0.2f;
     float zoomSensitivity = 0.0025f;
 
 private:
-    Camera *camera;
-    
     bool firstMouse;
     float lastMouseX;
     float lastMouseY;
 
-    float distance;
-    float pitch;
-    float yaw;
-
-public:
-    CameraControl(Camera *camera);
-    void handleInput(GLFWwindow *window);
+public: 
+    OrbitControl(Camera *camera);
+    virtual void handleInput(GLFWwindow *window);
 };

@@ -11,6 +11,7 @@ struct Model;
 struct Node;
 struct Texture;
 class Camera;
+class CameraControl;
 
 class Renderer {
 public:
@@ -64,6 +65,7 @@ public:
     Model *model;
     Texture *empty;
     Camera *camera;
+    CameraControl *cameraControl;
 
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
