@@ -1088,7 +1088,7 @@ void Renderer::createNodeDescriptorSet(Node *node) {
 
 void Renderer::updateUniformBuffer(uint32_t currentImage) {
     // Scene
-    uboMatrices.camPos = camera->type == CameraType::FIRST_PERSON ? camera->getPosition() : toOrbital(camera->getPosition(), camera->getRotation());
+    uboMatrices.camPos = camera->getWorldPosition();
     uboMatrices.view = camera->getView();
     uboMatrices.projection = camera->getProjection();
     

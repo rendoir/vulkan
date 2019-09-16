@@ -32,6 +32,8 @@ private:
     glm::mat4 view;
     glm::mat4 projection;
 
+    glm::vec3 worldPosition;
+
 private:
     void updateViewMatrix();
     void updateProjectionMatrix();
@@ -50,6 +52,7 @@ public:
     glm::mat4 inline getProjection() const { return projection; };
     glm::vec3 inline getPosition() const { return transform.position; };
     glm::vec3 inline getRotation() const { return transform.rotation; };
+    glm::vec3 inline getWorldPosition() const { return worldPosition; };
 };
 
 

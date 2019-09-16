@@ -91,5 +91,3 @@ struct Transform {
 };
 
 std::vector<char> readFile(const std::string& filename);
-
-glm::vec3 toOrbital(glm::vec3 position, glm::vec3 rotation);

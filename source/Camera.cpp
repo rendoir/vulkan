@@ -38,9 +38,9 @@ void Camera::updateViewMatrix() {
 
     transM = glm::translate(glm::mat4(1.0f), transform.position * glm::vec3(-1.0f, -1.0f, -1.0f));
 
-    if (type == CameraType::FIRST_PERSON)
-        view = rotM * transM;
-    else view = transM * rotM;
+    view = transM * rotM;
+    
+    worldPosition = glm::inverse(view) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Assume the camera is on the root object 
 }
 
 void Camera::updateProjectionMatrix() {

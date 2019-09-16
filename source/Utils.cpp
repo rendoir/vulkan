@@ -21,11 +21,3 @@ std::vector<char> readFile(const std::string& filename) {
 
     return buffer;
 }
-
-glm::vec3 toOrbital(glm::vec3 position, glm::vec3 rotation) {
-    return glm::vec3(
-        -position.z * sin(glm::radians(rotation.y)) * cos(glm::radians(rotation.x)),
-        position.z * sin(glm::radians(rotation.x)),
-        position.z * cos(glm::radians(rotation.y)) * cos(glm::radians(rotation.x))
-    );
-}
