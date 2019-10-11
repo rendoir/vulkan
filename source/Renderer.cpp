@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 #include "Model.hpp"
 #include "Camera.hpp"
+#include "Skybox.hpp"
 
 #include <array>
 #include <chrono>
@@ -31,6 +32,7 @@ Renderer::Renderer() {
     createUniformBuffers();
     createDescriptors();
     createPipeline();
+    initSkybox();
     recordCommandBuffers();
 }
 
@@ -39,6 +41,7 @@ Renderer::~Renderer() {
 
     model->destroy(); delete model;
     empty->destroy(); delete empty;
+    delete skybox;
     delete camera;
     delete cameraControl;
 
@@ -720,6 +723,12 @@ void Renderer::recordCommandBuffers() {
         
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+        // Render skybox
+        {
+            skybox->draw(i);
+        }
+
+        // Render scene
         {
             vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
@@ -813,12 +822,17 @@ void Renderer::loadAssets() {
     // Model
     model = new Model();
     model->loadFromFile("resources/models/DamagedHelmet/DamagedHelmet.gltf", this);
-    std::cout << "Model loaded" << std::endl; 
+    std::cout << "Model loaded: DamagedHelmet.gltf" << std::endl;
 
     // Empty texture
     empty = new Texture();
     empty->fromFile("resources/textures/uv_grid.jpg", this);
-    std::cout << "Texture loaded" << std::endl;
+    std::cout << "Texture loaded: uv_grid.jpg" << std::endl;
+}
+
+void Renderer::initSkybox() {
+    skybox = new Skybox(this);
+    std::cout << "Skybox loaded" << std::endl;
 }
 
 void Renderer::initCamera() {

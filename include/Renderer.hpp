@@ -7,6 +7,7 @@
 
 #include <vector>
 
+class Skybox;
 struct Model;
 struct Node;
 struct Texture;
@@ -63,6 +64,7 @@ public:
 
     // Scene
     Model *model;
+    Skybox *skybox;
     Texture *empty;
     Camera *camera;
     CameraControl *cameraControl;
@@ -105,6 +107,7 @@ private:
     void createDescriptors();
     void createPipeline();
     void recordCommandBuffers();
+    void initSkybox();
 
     void renderFrame();
     void handleInputs();
@@ -115,7 +118,6 @@ private:
     void cleanupSwapchain();
     void recreateSwapchain();
 
-    VkShaderModule createShaderModule(const std::vector<char>& code);
     bool checkValidationLayerSupport();
     std::vector<const char*> getRequiredExtensions();
     bool isDeviceSuitable(VkPhysicalDevice device);
@@ -142,6 +144,7 @@ private:
     void DestroyDebugUtilsMessengerEXT();
 
 public:
+    VkShaderModule createShaderModule(const std::vector<char>& code);
     void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
     VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);

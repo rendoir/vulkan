@@ -70,6 +70,11 @@ struct UBOMatrices {
     glm::vec3 camPos;
 };
 
+struct SkyboxMatrices {
+    glm::mat4 projection;
+    glm::mat4 model;
+};
+
 struct PushConstBlockMaterial {
     glm::vec4 baseColorFactor;
     glm::vec4 emissiveFactor;
