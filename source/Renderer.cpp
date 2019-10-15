@@ -1026,6 +1026,7 @@ void Renderer::renderFrame() {
     }
 
     updateUniformBuffer(imageIndex);
+    skybox->updateUniformBuffer(imageIndex);
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

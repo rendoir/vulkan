@@ -58,13 +58,14 @@ void Skybox::createDescriptors() {
     descriptorSets.resize(renderer->swapChainImages.size());
 
     std::vector<VkDescriptorPoolSize> poolSizes = {
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(renderer->swapChainImages.size()) },
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(renderer->swapChainImages.size()) }
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(renderer->swapChainImages.size()) }/*,
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(renderer->swapChainImages.size()) }*/
     };
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 2;
+    //poolInfo.poolSizeCount = 2;
+    poolInfo.poolSizeCount = 1;
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = static_cast<uint32_t>(renderer->swapChainImages.size() * 2);
 
@@ -74,8 +75,8 @@ void Skybox::createDescriptors() {
 
     // Descriptor layout
     std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
-        { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr }, // ubo matrices
-        { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr }, // cubemap
+        { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr }/*, // ubo matrices
+        { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr }, // cubemap*/
     };
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -104,7 +105,8 @@ void Skybox::createDescriptors() {
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(SkyboxMatrices);
 
-        std::array<VkWriteDescriptorSet, 2> writeDescriptorSets{};
+        std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
+        //std::array<VkWriteDescriptorSet, 2> writeDescriptorSets{};
 
         writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -112,14 +114,14 @@ void Skybox::createDescriptors() {
         writeDescriptorSets[0].dstSet = descriptorSets[i];
         writeDescriptorSets[0].dstBinding = 0;
         writeDescriptorSets[0].pBufferInfo = &bufferInfo;
-
+/*
         writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         writeDescriptorSets[1].descriptorCount = 1;
         writeDescriptorSets[1].dstSet = descriptorSets[i];
         writeDescriptorSets[1].dstBinding = 1;
         writeDescriptorSets[1].pImageInfo = &renderer->empty->descriptor; // TODO - Set texture descriptor
-
+*/
         vkUpdateDescriptorSets(renderer->device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
     }
 }
@@ -261,7 +263,7 @@ void Skybox::draw(size_t i) {
 VkVertexInputBindingDescription Skybox::Vertex::getBindingDescription() {
     VkVertexInputBindingDescription bindingDescription = {};
     bindingDescription.binding = 0;
-    bindingDescription.stride = sizeof(Skybox::Vertex);
+    bindingDescription.stride = sizeof(Model::Vertex);
     bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     return bindingDescription;
@@ -273,7 +275,7 @@ std::array<VkVertexInputAttributeDescription, 1> Skybox::Vertex::getAttributeDes
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
     attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[0].offset = offsetof(Skybox::Vertex, position);
+    attributeDescriptions[0].offset = offsetof(Model::Vertex, position);
 
     return attributeDescriptions;
 }
