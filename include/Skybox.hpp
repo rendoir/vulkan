@@ -5,12 +5,14 @@
 
 #include "Utils.hpp"
 
+struct Texture3D;
 class Model;
 class Renderer;
 
 class Skybox {
 public:
     Model* model;
+    Texture3D* textureCube;
     Renderer* renderer;
 
     VkPipelineLayout pipelineLayout;

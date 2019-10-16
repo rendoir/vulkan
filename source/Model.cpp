@@ -151,6 +151,77 @@ void Texture::destroy()
 }
 
 
+void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
+    this->renderer = renderer;
+    std::string fileNames[] = { "nx.png", "px.png", "ny.png", "py.png", "nz.png", "pz.png" }; // TODO - Should be a parameter?
+    
+    float *imageData[6];
+    for(int i = 0; i < 6; i++) {
+        int channels;
+        imageData[i] = stbi_loadf((folderName + '/' + fileNames[i]).c_str(), (int*)&width, (int*)&height, &channels, STBI_rgb_alpha);
+    }
+
+    imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
+    VkDeviceSize imageSize = 6 * width * height * STBI_rgb_alpha * sizeof(float);
+
+    createTextureImage(imageData, imageSize);
+    createTextureImageView();
+    createTextureSampler(TextureSampler::defaultSampler);
+    
+    descriptor.sampler = sampler;
+    descriptor.imageView = view;
+    descriptor.imageLayout = imageLayout;
+
+    for(int i = 0; i < 6; i++) {
+        stbi_image_free(imageData[i]);
+    }
+}
+
+void Texture3D::createTextureImage(float *imageData[], VkDeviceSize imageSize) {
+    // TODO - Mipmaping
+    //mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1);
+    mipLevels = 1;
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    renderer->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(renderer->device, stagingBufferMemory, 0, imageSize, 0, &data);
+        size_t offset = 0;
+        size_t faceSize = width * height * STBI_rgb_alpha * sizeof(float);
+        for(int i = 0; i < 6; i++) {
+            memcpy(static_cast<uint8_t*>(data) + offset, imageData[i], faceSize);
+            offset += faceSize;
+        }
+    vkUnmapMemory(renderer->device, stagingBufferMemory);
+
+    renderer->createImageCube(width, height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, deviceMemory);
+
+    renderer->transitionImageLayout(image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 6);
+    renderer->copyBufferToImage(stagingBuffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    renderer->transitionImageLayout(image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 6);
+
+    vkDestroyBuffer(renderer->device, stagingBuffer, nullptr);
+    vkFreeMemory(renderer->device, stagingBufferMemory, nullptr);
+
+    //renderer->generateMipmaps(image, VK_FORMAT_R16G16B16A16_SFLOAT, width, height, mipLevels);
+}
+
+void Texture3D::createTextureImageView() {
+
+}
+
+void Texture3D::createTextureSampler(TextureSampler textureSampler) {
+
+}
+
+void Texture3D::destroy() {
+    vkDestroyImage(renderer->device, image, nullptr);
+    vkFreeMemory(renderer->device, deviceMemory, nullptr);
+}
+
+
 Primitive::Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material &material) : firstIndex(firstIndex), indexCount(indexCount), vertexCount(vertexCount), material(material) {
     hasIndices = indexCount > 0;
 };

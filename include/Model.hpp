@@ -50,6 +50,26 @@ struct Texture {
     void destroy();
 };
 
+struct Texture3D {
+    Renderer *renderer;
+
+    VkImage image;
+    VkImageLayout imageLayout;
+    VkDeviceMemory deviceMemory;
+    VkImageView view;
+    uint32_t width, height;
+    uint32_t mipLevels;
+    uint32_t layerCount;
+    VkDescriptorImageInfo descriptor;
+    VkSampler sampler;
+    
+    void fromFolder(std::string folderName, Renderer *renderer);
+    void createTextureImage(float* imageData[], VkDeviceSize imageSize);
+    void createTextureImageView();
+    void createTextureSampler(TextureSampler textureSampler);
+    void destroy();
+};
+
 struct Material {
     enum AlphaMode { 
         ALPHAMODE_OPAQUE,

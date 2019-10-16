@@ -11,6 +11,8 @@
 Skybox::Skybox(Renderer* renderer) {
     model = new Model();
     model->loadFromFile("resources/models/Skybox/Skybox.glb", renderer);
+    textureCube = new Texture3D();
+    textureCube->fromFolder("resources/textures/skybox", renderer);
     this->renderer = renderer;
 
     createUniformBuffers();
@@ -21,6 +23,9 @@ Skybox::Skybox(Renderer* renderer) {
 Skybox::~Skybox() {
     model->destroy();
     delete model;
+
+    textureCube->destroy();
+    delete textureCube;
 
     vkDestroyPipeline(renderer->device, pipeline, nullptr);
     vkDestroyPipelineLayout(renderer->device, pipelineLayout, nullptr);
