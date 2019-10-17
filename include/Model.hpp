@@ -62,11 +62,12 @@ struct Texture3D {
     uint32_t layerCount;
     VkDescriptorImageInfo descriptor;
     VkSampler sampler;
+    VkDeviceSize faceSize;
     
     void fromFolder(std::string folderName, Renderer *renderer);
-    void createTextureImage(float* imageData[], VkDeviceSize imageSize);
+    void createTextureImage(float* imageData[]);
     void createTextureImageView();
-    void createTextureSampler(TextureSampler textureSampler);
+    void createTextureSampler();
     void destroy();
 };
 

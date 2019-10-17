@@ -63,14 +63,13 @@ void Skybox::createDescriptors() {
     descriptorSets.resize(renderer->swapChainImages.size());
 
     std::vector<VkDescriptorPoolSize> poolSizes = {
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(renderer->swapChainImages.size()) }/*,
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(renderer->swapChainImages.size()) }*/
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(renderer->swapChainImages.size()) },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(renderer->swapChainImages.size()) }
     };
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    //poolInfo.poolSizeCount = 2;
-    poolInfo.poolSizeCount = 1;
+    poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = static_cast<uint32_t>(renderer->swapChainImages.size() * 2);
 
@@ -80,8 +79,8 @@ void Skybox::createDescriptors() {
 
     // Descriptor layout
     std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
-        { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr }/*, // ubo matrices
-        { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr }, // cubemap*/
+        { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr }, // ubo matrices
+        { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr }, // cubemap
     };
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -110,8 +109,7 @@ void Skybox::createDescriptors() {
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(SkyboxMatrices);
 
-        std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
-        //std::array<VkWriteDescriptorSet, 2> writeDescriptorSets{};
+        std::array<VkWriteDescriptorSet, 2> writeDescriptorSets{};
 
         writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -119,14 +117,14 @@ void Skybox::createDescriptors() {
         writeDescriptorSets[0].dstSet = descriptorSets[i];
         writeDescriptorSets[0].dstBinding = 0;
         writeDescriptorSets[0].pBufferInfo = &bufferInfo;
-/*
+
         writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         writeDescriptorSets[1].descriptorCount = 1;
         writeDescriptorSets[1].dstSet = descriptorSets[i];
         writeDescriptorSets[1].dstBinding = 1;
-        writeDescriptorSets[1].pImageInfo = &renderer->empty->descriptor; // TODO - Set texture descriptor
-*/
+        writeDescriptorSets[1].pImageInfo = &textureCube->descriptor;
+
         vkUpdateDescriptorSets(renderer->device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
     }
 }

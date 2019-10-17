@@ -153,7 +153,7 @@ void Texture::destroy()
 
 void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
     this->renderer = renderer;
-    std::string fileNames[] = { "nx.png", "px.png", "ny.png", "py.png", "nz.png", "pz.png" }; // TODO - Should be a parameter?
+    std::string fileNames[] = { "nx.hdr", "px.hdr", "ny.hdr", "py.hdr", "nz.hdr", "pz.hdr" }; // TODO - Should be a parameter?
     
     float *imageData[6];
     for(int i = 0; i < 6; i++) {
@@ -162,11 +162,11 @@ void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
     }
 
     imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
-    VkDeviceSize imageSize = 6 * width * height * STBI_rgb_alpha * sizeof(float);
+    faceSize = width * height * STBI_rgb_alpha * 4;
 
-    createTextureImage(imageData, imageSize);
+    createTextureImage(imageData);
     createTextureImageView();
-    createTextureSampler(TextureSampler::defaultSampler);
+    createTextureSampler();
     
     descriptor.sampler = sampler;
     descriptor.imageView = view;
@@ -177,10 +177,11 @@ void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
     }
 }
 
-void Texture3D::createTextureImage(float *imageData[], VkDeviceSize imageSize) {
+void Texture3D::createTextureImage(float *imageData[]) {
     // TODO - Mipmaping
     //mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1);
     mipLevels = 1;
+    VkDeviceSize imageSize = faceSize * 6;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -189,36 +190,57 @@ void Texture3D::createTextureImage(float *imageData[], VkDeviceSize imageSize) {
     void* data;
     vkMapMemory(renderer->device, stagingBufferMemory, 0, imageSize, 0, &data);
         size_t offset = 0;
-        size_t faceSize = width * height * STBI_rgb_alpha * sizeof(float);
         for(int i = 0; i < 6; i++) {
             memcpy(static_cast<uint8_t*>(data) + offset, imageData[i], faceSize);
             offset += faceSize;
         }
     vkUnmapMemory(renderer->device, stagingBufferMemory);
 
-    renderer->createImageCube(width, height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, deviceMemory);
+    renderer->createImageCube(width, height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, deviceMemory);
 
-    renderer->transitionImageLayout(image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 6);
-    renderer->copyBufferToImage(stagingBuffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-    renderer->transitionImageLayout(image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 6);
+    renderer->transitionImageLayout(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 6);
+    renderer->copyBufferToImageCube(stagingBuffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height), mipLevels, faceSize);
+    renderer->transitionImageLayout(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 6);
 
     vkDestroyBuffer(renderer->device, stagingBuffer, nullptr);
     vkFreeMemory(renderer->device, stagingBufferMemory, nullptr);
 
-    //renderer->generateMipmaps(image, VK_FORMAT_R16G16B16A16_SFLOAT, width, height, mipLevels);
+    //renderer->generateMipmaps(image, VK_FORMAT_R32G32B32A32_SFLOAT, width, height, mipLevels);
 }
 
 void Texture3D::createTextureImageView() {
-
+    view = renderer->createImageViewCube(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
 }
 
-void Texture3D::createTextureSampler(TextureSampler textureSampler) {
+void Texture3D::createTextureSampler() {
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.maxAnisotropy = 16;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.minLod = 0;
+    samplerInfo.maxLod = static_cast<float>(mipLevels);
+    samplerInfo.mipLodBias = 0;
 
+    if (vkCreateSampler(renderer->device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture sampler!");
+    }   
 }
 
 void Texture3D::destroy() {
+    vkDestroyImageView(renderer->device, view, nullptr);
     vkDestroyImage(renderer->device, image, nullptr);
     vkFreeMemory(renderer->device, deviceMemory, nullptr);
+    vkDestroySampler(renderer->device, sampler, nullptr);
 }
 
 

@@ -1174,7 +1174,7 @@ void Renderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width,
     endSingleTimeCommands(commandBuffer);
 }
 
-void Renderer::copyBufferToImageCube(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevels) {
+void Renderer::copyBufferToImageCube(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevels, VkDeviceSize faceOffset) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
     std::vector<VkBufferImageCopy> bufferCopyRegions;
@@ -1194,7 +1194,7 @@ void Renderer::copyBufferToImageCube(VkBuffer buffer, VkImage image, uint32_t wi
 
             bufferCopyRegions.push_back(bufferCopyRegion);
 
-            offset += width * height * 4 * sizeof(float); // TODO - Pass as a parameter (faceOffset -> attribute of Texture3D)
+            offset += faceOffset;
         }
     }
 
@@ -1214,6 +1214,26 @@ VkImageView Renderer::createImageView(VkImage image, VkFormat format, VkImageAsp
     viewInfo.subresourceRange.levelCount = mipLevels;
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
+
+    VkImageView imageView;
+    if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture image view!");
+    }
+
+    return imageView;
+}
+
+VkImageView Renderer::createImageViewCube(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = aspectFlags;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = mipLevels;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 6;
 
     VkImageView imageView;
     if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
