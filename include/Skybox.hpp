@@ -45,4 +45,9 @@ public:
     void draw(size_t i);
 
     void updateUniformBuffer(size_t i);
+    void onSwapchainRecreation();
+
+private:
+    void init();
+    void cleanup();
 };

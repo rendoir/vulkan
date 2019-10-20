@@ -127,6 +127,9 @@ void Renderer::recreateSwapchain() {
     createUniformBuffers();
     createDescriptors();
     createPipeline();
+
+    skybox->onSwapchainRecreation();
+
     recordCommandBuffers();
 }
 

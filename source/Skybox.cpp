@@ -6,7 +6,6 @@
 
 #include <iostream>
 
-// TODO: Handle swapchain recreation
 
 Skybox::Skybox(Renderer* renderer) {
     model = new Model();
@@ -15,9 +14,7 @@ Skybox::Skybox(Renderer* renderer) {
     textureCube->fromFolder("resources/textures/skybox", renderer);
     this->renderer = renderer;
 
-    createUniformBuffers();
-    createDescriptors();
-    createPipeline();
+    init();
 }
 
 Skybox::~Skybox() {
@@ -27,6 +24,16 @@ Skybox::~Skybox() {
     textureCube->destroy();
     delete textureCube;
 
+    cleanup();
+}
+
+void Skybox::init() {
+    createUniformBuffers();
+    createDescriptors();
+    createPipeline();
+}
+
+void Skybox::cleanup() {
     vkDestroyPipeline(renderer->device, pipeline, nullptr);
     vkDestroyPipelineLayout(renderer->device, pipelineLayout, nullptr);
 
@@ -37,6 +44,11 @@ Skybox::~Skybox() {
 
     vkDestroyDescriptorSetLayout(renderer->device, descriptorSetLayout, nullptr);
     vkDestroyDescriptorPool(renderer->device, descriptorPool, nullptr);
+}
+
+void Skybox::onSwapchainRecreation() {
+    cleanup();
+    init();
 }
 
 void Skybox::createUniformBuffers() {
