@@ -178,9 +178,7 @@ void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
 }
 
 void Texture3D::createTextureImage(float *imageData[]) {
-    // TODO - Mipmaping
-    //mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1);
-    mipLevels = 1;
+    mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1);
     VkDeviceSize imageSize = faceSize * 6;
 
     VkBuffer stagingBuffer;
@@ -200,12 +198,12 @@ void Texture3D::createTextureImage(float *imageData[]) {
 
     renderer->transitionImageLayout(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 6);
     renderer->copyBufferToImageCube(stagingBuffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height), mipLevels, faceSize);
-    renderer->transitionImageLayout(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 6);
+    //renderer->transitionImageLayout(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 6);
 
     vkDestroyBuffer(renderer->device, stagingBuffer, nullptr);
     vkFreeMemory(renderer->device, stagingBufferMemory, nullptr);
 
-    //renderer->generateMipmaps(image, VK_FORMAT_R32G32B32A32_SFLOAT, width, height, mipLevels);
+    renderer->generateMipmapsCube(image, VK_FORMAT_R32G32B32A32_SFLOAT, width, height, mipLevels);
 }
 
 void Texture3D::createTextureImageView() {
