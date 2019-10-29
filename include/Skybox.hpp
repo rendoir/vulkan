@@ -35,7 +35,7 @@ public:
     };
 
 public:
-    Skybox(Renderer *renderer);
+    Skybox(Renderer* renderer, Texture3D* texture);
     ~Skybox();
 
     void createUniformBuffers();

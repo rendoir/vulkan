@@ -11,6 +11,7 @@ class Skybox;
 struct Model;
 struct Node;
 struct Texture;
+struct Texture3D;
 class Camera;
 class CameraControl;
 
@@ -66,6 +67,8 @@ public:
     Model *model;
     Skybox *skybox;
     Texture *empty;
+    Texture *brdflut;
+    Texture3D *environmentCube;
     Camera *camera;
     CameraControl *cameraControl;
 
@@ -117,6 +120,9 @@ private:
 
     void cleanupSwapchain();
     void recreateSwapchain();
+
+    void generateBRDFLUT();
+    void generateCubemaps();
 
     bool checkValidationLayerSupport();
     std::vector<const char*> getRequiredExtensions();

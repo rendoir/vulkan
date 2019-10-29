@@ -12,6 +12,16 @@
 #include <string>
 #include <vector>
 
+#define VK_CHECK_RESULT(f)																				\
+{																										\
+	VkResult res = (f);																					\
+	if (res != VK_SUCCESS)																				\
+	{																									\
+		std::cout << "Fatal : VkResult is \"" << res << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+		assert(res == VK_SUCCESS);																		\
+	}																									\
+}
+
 struct Image {
     VkImage image;
     VkImageView view;
@@ -27,6 +37,8 @@ struct Settings {
     bool vsync = false;
     bool multiSampling = true;
     VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
+
+    uint32_t brdflutSize = 512;
 };
 
 extern Settings settings;
