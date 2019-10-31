@@ -65,10 +65,13 @@ public:
 
     // Scene
     Model *model;
+    Model *cube;
     Skybox *skybox;
     Texture *empty;
     Texture *brdflut;
     Texture3D *environmentCube;
+    Texture3D *irradianceCube;
+    Texture3D *prefilteredCube;
     Camera *camera;
     CameraControl *cameraControl;
 

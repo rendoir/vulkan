@@ -8,8 +8,7 @@
 
 
 Skybox::Skybox(Renderer* renderer, Texture3D* texture) {
-    model = new Model();
-    model->loadFromFile("resources/models/Skybox/Skybox.glb", renderer);
+    model = renderer->cube;
     textureCube = texture;
     this->renderer = renderer;
 
@@ -17,9 +16,6 @@ Skybox::Skybox(Renderer* renderer, Texture3D* texture) {
 }
 
 Skybox::~Skybox() {
-    model->destroy();
-    delete model;
-
     cleanup();
 }
 

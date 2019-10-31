@@ -153,12 +153,17 @@ void Texture::destroy()
 
 void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
     this->renderer = renderer;
-    std::string fileNames[] = { "nx.hdr", "px.hdr", "ny.hdr", "py.hdr", "nz.hdr", "pz.hdr" }; // TODO - Should be a parameter?
+    std::string fileNames[] = { "negx.hdr", "posx.hdr", "negy.hdr", "posy.hdr", "negz.hdr", "posz.hdr" }; // TODO - Should be a parameter?
     
     float *imageData[6];
     for(int i = 0; i < 6; i++) {
         int channels;
         imageData[i] = stbi_loadf((folderName + '/' + fileNames[i]).c_str(), (int*)&width, (int*)&height, &channels, STBI_rgb_alpha);
+
+        if(!imageData[i]) {
+            std::cerr << "Error loading image: " << folderName  << std::endl;
+            assert(imageData[i] != nullptr);
+        }
     }
 
     imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
