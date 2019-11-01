@@ -10,8 +10,10 @@ layout(push_constant) uniform PushConsts {
 	layout (offset = 68) uint numSamples;
 } consts;
 
-const float PI = 3.1415926536;
 
+// Constants
+const float PI = 3.1415926535897932384626433832795;
+const float epsilon = 1.175494e-38;
 
 // Hammersley sequence
 vec2 Hammersley(uint i, uint N) 
@@ -21,7 +23,7 @@ vec2 Hammersley(uint i, uint N)
 	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
 	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
 	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-	float rdi = float(bits) * 2.3283064365386963e-10;
+	float rdi = float(bits) * 2.3283064365386963e-10; // 0x100000000
 	return vec2(float(i) /float(N), rdi);
 }
 
@@ -33,30 +35,33 @@ vec3 ImportanceSampleGGX(vec2 Xi, float roughness, vec3 normal)
 	float phi = 2.0 * PI * Xi.x;
 	float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha*alpha - 1.0) * Xi.y));
 	float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
-	vec3 H = vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+	vec3 halfway = vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
 
 	// Tangent space
 	vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-	vec3 tangentX = normalize(cross(up, normal));
-	vec3 tangentY = normalize(cross(normal, tangentX));
+	vec3 tangent = normalize(cross(up, normal));
+	vec3 bitangent = normalize(cross(normal, tangent));
 
 	// Convert to world Space
-	return normalize(tangentX * H.x + tangentY * H.y + normal * H.z);
+	return normalize(tangent * halfway.x + bitangent * halfway.y + normal * halfway.z);
 }
 
 // Normal Distribution function
 float NormalDistributionFunction(float dotNH, float roughness)
 {
 	float alpha = roughness * roughness;
-	float alpha2 = alpha * alpha;
-	float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
-	return (alpha2)/(PI * denom*denom); 
+	float alphaSquare = alpha * alpha;
+	float denominator = dotNH * dotNH * (alphaSquare - 1.0) + 1.0;
+	denominator = PI * denominator * denominator;
+	
+	return alphaSquare / max(denominator, epsilon); // Prevent division by zero.
 }
 
 vec3 prefilterEnvMap(vec3 R, float roughness)
 {
 	vec3 N = R;
 	vec3 V = R;
+
 	vec3 color = vec3(0.0);
 	float totalWeight = 0.0;
 	float envMapDim = float(textureSize(samplerEnv, 0).s);
@@ -64,25 +69,25 @@ vec3 prefilterEnvMap(vec3 R, float roughness)
 		vec2 Xi = Hammersley(i, consts.numSamples);
 		vec3 H = ImportanceSampleGGX(Xi, roughness, N);
 		vec3 L = 2.0 * dot(V, H) * H - V;
+		
 		float dotNL = clamp(dot(N, L), 0.0, 1.0);
 		if(dotNL > 0.0) {
-
 			float dotNH = clamp(dot(N, H), 0.0, 1.0);
 			float dotVH = clamp(dot(V, H), 0.0, 1.0);
 
 			// Probability Distribution Function
-			float pdf = NormalDistributionFunction(dotNH, roughness) * dotNH / (4.0 * dotVH) + 0.0001;
-			// Slid angle of current smple
+			float pdf = NormalDistributionFunction(dotNH, roughness) * dotNH / (4.0 * dotVH) + epsilon;
+			// Solid angle of the current sample
 			float omegaS = 1.0 / (float(consts.numSamples) * pdf);
 			// Solid angle of 1 pixel across all cube faces
 			float omegaP = 4.0 * PI / (6.0 * envMapDim * envMapDim);
-			// Biased (+1.0) mip level for better result
-			float mipLevel = roughness == 0.0 ? 0.0 : max(0.5 * log2(omegaS / omegaP) + 1.0, 0.0f);
+			
+			float mipLevel = roughness == 0.0 ? 0.0 : clamp(0.5 * log2(omegaS / omegaP), 0.0f, float(textureQueryLevels(samplerEnv)));
 			color += textureLod(samplerEnv, L, mipLevel).rgb * dotNL;
 			totalWeight += dotNL;
-
 		}
 	}
+
 	return (color / totalWeight);
 }
 

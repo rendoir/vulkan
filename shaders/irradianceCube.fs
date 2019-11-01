@@ -25,8 +25,11 @@ void main()
 	uint sampleCount = 0u;
 	for (float phi = 0.0; phi < TWO_PI; phi += consts.deltaPhi) {
 		for (float theta = 0.0; theta < HALF_PI; theta += consts.deltaTheta) {
-			vec3 tempVec = cos(phi) * right + sin(phi) * up;
-			vec3 sampleVector = cos(theta) * N + sin(theta) * tempVec;
+			// Spherical to cartesian (in tangent space)
+            vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+            // Tangent space to world space
+            vec3 sampleVector = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;
+			
 			color += texture(samplerEnv, sampleVector).rgb * cos(theta) * sin(theta);
 			sampleCount++;
 		}

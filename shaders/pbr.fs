@@ -42,6 +42,7 @@ const float gamma = 2.2;
 const float exposure = 4.5;
 const vec3 dielectricF0 = vec3(0.04);
 const vec3 ambientLight = vec3(0.03); // TODO - Use IBL
+const float epsilon = 1.175494e-38;
 
 // Lights - TODO make uniform
 const int numberLights = 1;
@@ -172,7 +173,7 @@ float NormalDistributionFunction(vec3 N, vec3 H, float roughness) {
     float denominator = (NdotHSquare * (aSquare - 1.0) + 1.0);
     denominator = PI * denominator * denominator;
 
-    return numerator / max(denominator, 1.175494e-38); // Prevent division by zero.
+    return numerator / max(denominator, epsilon); // Prevent division by zero.
 }
 
 
@@ -207,7 +208,7 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 radiance, vec4 albedo, float metallic, fl
 
 	vec3 numerator = D * G * F; 
 	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0); 
-	vec3 specular = numerator / max(denominator, 1.175494e-38); // Prevent division by zero.
+	vec3 specular = numerator / max(denominator, epsilon); // Prevent division by zero.
 	
 	vec3 kS = F;
 	vec3 kD = vec3(1.0) - kS;
