@@ -39,6 +39,12 @@ struct Settings {
     VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
 
     uint32_t brdflutSize = 512;
+    uint32_t prefilterSize = 512;
+    uint32_t irradianceSize = 64;
+
+    uint32_t prefilterSamples = 32;
+    float irradiancePhiSteps = 180.0f;
+    float irradianceThetaSteps = 64.0f;
 };
 
 extern Settings settings;

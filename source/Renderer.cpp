@@ -2188,11 +2188,11 @@ void Renderer::generateCubemaps()
         switch (target) {
         case IRRADIANCE:
             format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            dim = 64;
+            dim = settings.irradianceSize;
             break;
         case PREFILTEREDENV:
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
-            dim = 512;
+            dim = settings.prefilterSize;
             break;
         };
 
@@ -2410,14 +2410,14 @@ void Renderer::generateCubemaps()
 
         struct PushBlockIrradiance {
             glm::mat4 mvp;
-            float deltaPhi = (2.0f * float(M_PI)) / 180.0f;
-            float deltaTheta = (0.5f * float(M_PI)) / 64.0f;
+            float deltaPhi = (2.0f * float(M_PI)) / settings.irradiancePhiSteps;
+            float deltaTheta = (0.5f * float(M_PI)) / settings.irradianceThetaSteps;
         } pushBlockIrradiance;
 
         struct PushBlockPrefilterEnv {
             glm::mat4 mvp;
             float roughness;
-            uint32_t numSamples = 32u;
+            uint32_t numSamples = settings.prefilterSamples;
         } pushBlockPrefilterEnv;
 
         // Pipeline layout
@@ -2552,7 +2552,7 @@ void Renderer::generateCubemaps()
 
         // Render cubemap
         VkClearValue clearValues[1];
-        clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 0.0f } }; // TODO - WHY?
+        clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
 
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
