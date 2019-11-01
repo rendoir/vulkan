@@ -13,7 +13,7 @@ layout(push_constant) uniform PushConsts {
 
 // Constants
 const float PI = 3.1415926535897932384626433832795;
-const float epsilon = 1.175494e-38;
+const float epsilon = 1.175495e-38;
 
 // Hammersley sequence
 vec2 Hammersley(uint i, uint N) 

@@ -13,6 +13,11 @@ layout (set = 0, binding = 0) uniform UBO {
 	vec3 camPos;
 } ubo;
 
+// IBL textures
+layout (set = 0, binding = 1) uniform samplerCube irradianceMap;
+layout (set = 0, binding = 2) uniform samplerCube prefilterMap;
+layout (set = 0, binding = 3) uniform sampler2D brdflutMap;
+
 // Material bindings
 layout (set = 1, binding = 0) uniform sampler2D colorMap;
 layout (set = 1, binding = 1) uniform sampler2D physicalDescriptorMap;
@@ -41,13 +46,13 @@ const float PI = 3.1415926535897932384626433832795;
 const float gamma = 2.2;
 const float exposure = 4.5;
 const vec3 dielectricF0 = vec3(0.04);
-const vec3 ambientLight = vec3(0.03); // TODO - Use IBL
-const float epsilon = 1.175494e-38;
+const float iblStrength = 1.0;
+const float epsilon = 1.175495e-38;
 
 // Lights - TODO make uniform
 const int numberLights = 1;
 vec3 lightColors[numberLights] = vec3[](
-    vec3(1.0, 1.0, 1.0)
+    vec3(2.0, 2.0, 2.0)
 );
 vec3 lightPositions[numberLights] = vec3[](
     vec3(1.0, 1.0, 1.0)
@@ -182,6 +187,11 @@ vec3 FresnelFunction(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+// Shlick Fresnel Function with Roughness
+vec3 FresnelRoughnessFunction(float cosTheta, vec3 F0, float roughness) {
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
 
 // Schlick Smith GGX Geometry Function 
 float GeometryFunction(vec3 N, vec3 V, vec3 L, float roughness)
@@ -221,6 +231,25 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 radiance, vec4 albedo, float metallic, fl
 }
 
 
+vec3 IBL(vec4 albedo, float metallic, float roughness, vec3 N, vec3 V, vec3 F0) {
+    vec3 F = FresnelRoughnessFunction(max(dot(N, V), 0.0), F0, roughness);
+    
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse = irradiance * albedo.rgb;
+    
+	vec3 R = reflect(-V, N);
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * float(textureQueryLevels(prefilterMap)-1)).rgb;    
+    vec2 brdf  = texture(brdflutMap, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+    return iblStrength * (kD * diffuse + specular);
+}
+
+
 void main()
 {
 	vec4 albedo;
@@ -246,7 +275,7 @@ void main()
 	
 	applyEmissiveness(Lo);
 
-	vec3 ambient = ambientLight * albedo.rgb;
+	vec3 ambient = IBL(albedo, metallic, roughness, N, V, F0);
 	applyAmbientOcclusion(ambient);
 
 	vec3 color = ambient + Lo;

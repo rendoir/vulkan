@@ -895,7 +895,7 @@ void Renderer::createDescriptors() {
 
     std::vector<VkDescriptorPoolSize> poolSizes = {
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, meshCount + static_cast<uint32_t>(swapChainImages.size()) },
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageSamplerCount }
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageSamplerCount + 3 * static_cast<uint32_t>(swapChainImages.size())}
     };
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -912,7 +912,10 @@ void Renderer::createDescriptors() {
     {
         //Layout
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
-            { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr } //ubo matrices
+            { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr }, //ubo matrices
+            { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr }, // Irradiance
+            { 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr }, // Prefilter
+            { 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr } // BRDFLUT
         };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -940,13 +943,34 @@ void Renderer::createDescriptors() {
                 throw std::runtime_error("failed to allocate descriptor sets!");
             }
 
-            std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
+            std::array<VkWriteDescriptorSet, 4> writeDescriptorSets{};
             writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             writeDescriptorSets[0].descriptorCount = 1;
             writeDescriptorSets[0].dstSet = descriptorSets[i];
             writeDescriptorSets[0].dstBinding = 0;
             writeDescriptorSets[0].pBufferInfo = &bufferInfo;
+
+            writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writeDescriptorSets[1].descriptorCount = 1;
+            writeDescriptorSets[1].dstSet = descriptorSets[i];
+            writeDescriptorSets[1].dstBinding = 1;
+            writeDescriptorSets[1].pImageInfo = &irradianceCube->descriptor;
+
+            writeDescriptorSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescriptorSets[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writeDescriptorSets[2].descriptorCount = 1;
+            writeDescriptorSets[2].dstSet = descriptorSets[i];
+            writeDescriptorSets[2].dstBinding = 2;
+            writeDescriptorSets[2].pImageInfo = &prefilteredCube->descriptor;
+
+            writeDescriptorSets[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescriptorSets[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writeDescriptorSets[3].descriptorCount = 1;
+            writeDescriptorSets[3].dstSet = descriptorSets[i];
+            writeDescriptorSets[3].dstBinding = 3;
+            writeDescriptorSets[3].pImageInfo = &brdflut->descriptor;
 
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, NULL);
         }

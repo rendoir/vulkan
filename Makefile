@@ -48,7 +48,7 @@ $(BUILD_DIR)/%.o : %.cpp
 	mkdir -p $(@D)
 # 	The -MMD flags additionaly creates a .d file with
 # 	the same name as the .o file
-	$(CXX) $(CXX_FLAGS) -MMD -c $< -o $@ $(LIB)
+	$(CXX) $(CXX_FLAGS) -MMD -c $< -o $@
 
 # Build target for every single spirv file
 $(BUILD_DIR)/%.vs.spv : %.vs
