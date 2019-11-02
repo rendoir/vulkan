@@ -267,8 +267,11 @@ void main()
 	// Reflectance equation
 	vec3 Lo = vec3(0.0);
 	for(int i = 0; i < numberLights; i++) {
-		vec3 L = normalize(lightPositions[i] - inWorldPos);
-		vec3 radiance = sRGBtoLinear(lightColors[i]); // TODO - Apply attenuation
+		vec3 uL = lightPositions[i] - inWorldPos;
+		vec3 L = normalize(uL);
+		float lightDistance = length(uL);
+        float attenuation = 1.0 / (lightDistance * lightDistance);
+		vec3 radiance = sRGBtoLinear(lightColors[i]) * attenuation;
 		
 		Lo += BRDF(L, V, N, radiance, albedo, metallic, roughness, F0);
 	}
