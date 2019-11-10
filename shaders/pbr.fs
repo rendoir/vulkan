@@ -241,9 +241,9 @@ vec3 IBL(vec4 albedo, float metallic, float roughness, vec3 N, vec3 V, vec3 F0) 
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse = irradiance * albedo.rgb;
     
-	vec3 R = reflect(-V, N);
-    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * float(textureQueryLevels(prefilterMap)-1)).rgb;    
-    vec2 brdf  = texture(brdflutMap, vec2(max(dot(N, V), 0.0), roughness)).rg;
+	vec3 R = -normalize(reflect(V, N));
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * (float(textureQueryLevels(prefilterMap)-1))).rgb;    
+    vec2 brdf  = texture(brdflutMap, vec2(max(dot(N, V), 0.0), 1.0 - roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
     return iblStrength * (kD * diffuse + specular);
