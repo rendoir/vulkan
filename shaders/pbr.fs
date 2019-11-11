@@ -116,7 +116,7 @@ void applyEmissiveness(inout vec3 color) {
 }
 
 void applyGammaCorrection(inout vec3 color) {
-	linearTosRGB(color);
+	color = linearTosRGB(color);
 }
 
 
