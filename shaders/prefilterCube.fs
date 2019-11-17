@@ -82,7 +82,7 @@ vec3 prefilterEnvMap(vec3 R, float roughness)
 			// Solid angle of 1 pixel across all cube faces
 			float omegaP = 4.0 * PI / (6.0 * envMapDim * envMapDim);
 			
-			float mipLevel = roughness == 0.0 ? 0.0 : clamp(0.5 * log2(omegaS / omegaP), 0.0f, float(textureQueryLevels(samplerEnv)));
+			float mipLevel = roughness == 0.0 ? 0.0 : clamp(0.5 * log2(omegaS / omegaP), 0.0f, float(textureQueryLevels(samplerEnv)-1));
 			color += textureLod(samplerEnv, L, mipLevel).rgb * dotNL;
 			totalWeight += dotNL;
 		}
