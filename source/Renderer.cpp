@@ -147,6 +147,11 @@ void Renderer::initWindow() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     window = glfwCreateWindow(settings.width, settings.height, "Vulkan", nullptr, nullptr);
+
+    if (!window) {
+        throw std::runtime_error("failed to create window!");
+    }
+
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
