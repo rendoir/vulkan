@@ -10,74 +10,68 @@
 
 #include "Utils.hpp"
 
-class CameraControl;
 
-
-enum CameraType {
-    FIRST_PERSON,
-    THIRD_PERSON
-};
-
-
-class Camera 
+class Camera
 {
-private:
-    Transform transform;
-
-    float fov = glm::radians(45.0f);
-    float aspectRatio = 1.0f;
-    float near = 0.1f;
-    float far = 1000.0f;
-
-    glm::mat4 view;
-    glm::mat4 projection;
-
-    glm::vec3 worldPosition;
-
-private:
-    void updateViewMatrix();
-    void updateProjectionMatrix();
-
-public:
-    CameraType type = CameraType::THIRD_PERSON;
-
 public:
     Camera();
-    void setPosition(glm::vec3 position);
-    void setRotation(glm::vec3 rotation);
-    void setPerspective(float fov, float aspectRatio, float near, float far);
-    void setAspectRatio(float aspectRatio);
 
-    glm::mat4 inline getView() const { return view; };
-    glm::mat4 inline getProjection() const { return projection; };
-    glm::vec3 inline getPosition() const { return transform.position; };
-    glm::vec3 inline getRotation() const { return transform.rotation; };
-    glm::vec3 inline getWorldPosition() const { return worldPosition; };
-};
+    void SetPosition(glm::vec3 position);
+    void SetRotation(glm::vec3 rotation);
+    void SetPerspective(float fov, float aspectRatio, float near, float far);
+    void SetAspectRatio(float aspectRatio);
 
-
-class CameraControl {
-protected:
-    Camera *camera;
-
-public:
-    CameraControl(Camera *camera);
-    virtual ~CameraControl();
-    virtual void handleInput(GLFWwindow *window) = 0;
-};
-
-
-class OrbitControl : public CameraControl {
-public:
-    float orbitSensitivity = 0.2f;
-    float zoomSensitivity = 0.0025f;
+    glm::mat4 inline GetView()          const { return m_view; };
+    glm::mat4 inline GetProjection()    const { return m_projection; };
+    glm::vec3 inline GetPosition()      const { return m_transform.m_position; };
+    glm::vec3 inline GetRotation()      const { return m_transform.m_rotation; };
+    glm::vec3 inline GetWorldPosition() const { return m_worldPosition; };
 
 private:
-    bool firstMouse;
-    float lastMouseX;
-    float lastMouseY;
+    void UpdateViewMatrix();
+    void UpdateProjectionMatrix();
 
-public: 
-    OrbitControl(Camera *camera);
-    virtual void handleInput(GLFWwindow *window);
+private:
+    Transform m_transform;
+
+    float m_fov         = glm::radians(45.0f);
+    float m_near        = 0.1f;
+    float m_far         = 1000.0f;
+    float m_aspectRatio = 1.0f;
+
+    glm::mat4 m_view;
+    glm::mat4 m_projection;
+
+    glm::vec3 m_worldPosition;
+};
+
+
+class CameraControl
+{
+public:
+    CameraControl(Camera* camera);
+    virtual ~CameraControl();
+
+    virtual void HandleInput(GLFWwindow* window) = 0;
+
+protected:
+    Camera* m_camera = nullptr;
+};
+
+
+class OrbitControl : public CameraControl
+{
+public:
+    OrbitControl(Camera* camera);
+    
+    virtual void HandleInput(GLFWwindow* window);
+
+public:
+    float m_orbitSensitivity = 0.2f;
+    float m_zoomSensitivity  = 0.0025f;
+
+private:
+    bool  m_firstMouse;
+    float m_lastMouseX;
+    float m_lastMouseY;
 };

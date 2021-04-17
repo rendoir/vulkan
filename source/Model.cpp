@@ -9,39 +9,26 @@
 #include <iostream>
 
 
-const TextureSampler TextureSampler::defaultSampler = {
-    VK_FILTER_LINEAR,
-    VK_FILTER_LINEAR,
-    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-    VK_SAMPLER_ADDRESS_MODE_REPEAT
-};
-
-BoundingBox::BoundingBox() {};
-
-BoundingBox::BoundingBox(glm::vec3 min, glm::vec3 max) 
-    : min(min), max(max) {}
-
-BoundingBox BoundingBox::getAABB(glm::mat4 m) {
-    glm::vec3 min = glm::vec3(m[3]);
+BoundingBox BoundingBox::FromMatrix(glm::mat4 const& matrix) {
+    glm::vec3 min = glm::vec3(matrix[3]);
     glm::vec3 max = min;
     glm::vec3 v0, v1;
     
-    glm::vec3 right = glm::vec3(m[0]);
-    v0 = right * this->min.x;
-    v1 = right * this->max.x;
+    glm::vec3 right = glm::vec3(matrix[0]);
+    v0 = right * this->m_min.x;
+    v1 = right * this->m_max.x;
     min += glm::min(v0, v1);
     max += glm::max(v0, v1);
 
-    glm::vec3 up = glm::vec3(m[1]);
-    v0 = up * this->min.y;
-    v1 = up * this->max.y;
+    glm::vec3 up = glm::vec3(matrix[1]);
+    v0 = up * this->m_min.y;
+    v1 = up * this->m_max.y;
     min += glm::min(v0, v1);
     max += glm::max(v0, v1);
 
-    glm::vec3 back = glm::vec3(m[2]);
-    v0 = back * this->min.z;
-    v1 = back * this->max.z;
+    glm::vec3 back = glm::vec3(matrix[2]);
+    v0 = back * this->m_min.z;
+    v1 = back * this->m_max.z;
     min += glm::min(v0, v1);
     max += glm::max(v0, v1);
 
@@ -49,84 +36,84 @@ BoundingBox BoundingBox::getAABB(glm::mat4 m) {
 }
 
 
-void Texture::fromglTfImage(tinygltf::Image &gltfimage, TextureSampler textureSampler, Renderer* renderer) {
-    this->renderer = renderer;
+void Texture2D::FromglTfImage(tinygltf::Image const& gltfimage, TextureSampler const& textureSampler, Renderer* renderer) {
+    this->m_renderer = renderer;
 
-    unsigned char* imageData = gltfimage.image.data();
+    uint8_t const* const imageData = gltfimage.image.data();
     VkDeviceSize imageSize = gltfimage.image.size();
-    width = gltfimage.width;
-    height = gltfimage.height;
-    imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
+    m_width = gltfimage.width;
+    m_height = gltfimage.height;
+    m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
 
-    createTextureImage(imageData, imageSize);
-    createTextureImageView();
-    createTextureSampler(textureSampler);
+    CreateTextureImage(imageData, imageSize);
+    CreateTextureImageView();
+    CreateTextureSampler(textureSampler);
     
-    descriptor.sampler = sampler;
-    descriptor.imageView = view;
-    descriptor.imageLayout = imageLayout;
+    m_descriptor.sampler = m_sampler;
+    m_descriptor.imageView = m_view;
+    m_descriptor.imageLayout = m_imageLayout;
 }
 
-void Texture::fromFile(std::string filename, Renderer *renderer) {
-    this->renderer = renderer;
+void Texture2D::FromFile(std::string const filename, Renderer* renderer) {
+    this->m_renderer = renderer;
 
     int channels;
-    stbi_uc* imageData = stbi_load(filename.c_str(), (int*)&width, (int*)&height, &channels, STBI_rgb_alpha);
-    VkDeviceSize imageSize = width * height * STBI_rgb_alpha;
-    imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
+    stbi_uc* imageData = stbi_load(filename.c_str(), (int*)&m_width, (int*)&m_height, &channels, STBI_rgb_alpha);
+    VkDeviceSize imageSize = m_width * m_height * STBI_rgb_alpha;
+    m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
 
     if (!imageData) {
         throw std::runtime_error("failed to load texture image!");
     }
 
-    createTextureImage(imageData, imageSize);
-    createTextureImageView();
-    createTextureSampler(TextureSampler::defaultSampler);
+    CreateTextureImage(imageData, imageSize);
+    CreateTextureImageView();
+    CreateTextureSampler(TextureSampler());
 
-    descriptor.sampler = sampler;
-    descriptor.imageView = view;
-    descriptor.imageLayout = imageLayout;
+    m_descriptor.sampler = m_sampler;
+    m_descriptor.imageView = m_view;
+    m_descriptor.imageLayout = m_imageLayout;
 
     stbi_image_free(imageData);
 }
 
-void Texture::createTextureImage(unsigned char* imageData, VkDeviceSize imageSize) {
-    mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1);
+void Texture2D::CreateTextureImage(uint8_t const* const imageData, VkDeviceSize const& imageSize) {
+    m_mipLevels = static_cast<uint32_t>(floor(log2(std::max(m_width, m_height))) + 1);
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    renderer->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    m_renderer->CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(renderer->device, stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(m_renderer->m_device, stagingBufferMemory, 0, imageSize, 0, &data);
         memcpy(data, imageData, static_cast<size_t>(imageSize));
-    vkUnmapMemory(renderer->device, stagingBufferMemory);
+    vkUnmapMemory(m_renderer->m_device, stagingBufferMemory);
 
-    renderer->createImage(width, height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, deviceMemory);
+    m_renderer->CreateImage(m_width, m_height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_deviceMemory);
 
-    renderer->transitionImageLayout(image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
-    renderer->copyBufferToImage(stagingBuffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    m_renderer->TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels);
+    m_renderer->CopyBufferToImage(stagingBuffer, m_image, static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height));
     //transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
-    vkDestroyBuffer(renderer->device, stagingBuffer, nullptr);
-    vkFreeMemory(renderer->device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(m_renderer->m_device, stagingBuffer, nullptr);
+    vkFreeMemory(m_renderer->m_device, stagingBufferMemory, nullptr);
 
-    renderer->generateMipmaps(image, VK_FORMAT_R8G8B8A8_UNORM, width, height, mipLevels);
+    m_renderer->GenerateMipmaps(m_image, VK_FORMAT_R8G8B8A8_UNORM, m_width, m_height, m_mipLevels);
 }
 
-void Texture::createTextureImageView() {
-    view = renderer->createImageView(image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+void Texture2D::CreateTextureImageView() {
+    m_view = m_renderer->CreateImageView(m_image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_mipLevels);
 }
 
-void Texture::createTextureSampler(TextureSampler textureSampler) {
+void Texture2D::CreateTextureSampler(TextureSampler const& textureSampler) {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = textureSampler.magFilter;
-    samplerInfo.minFilter = textureSampler.minFilter;
+    samplerInfo.magFilter = textureSampler.m_magFilter;
+    samplerInfo.minFilter = textureSampler.m_minFilter;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.addressModeU = textureSampler.addressModeU;
-    samplerInfo.addressModeV = textureSampler.addressModeV;
-    samplerInfo.addressModeW = textureSampler.addressModeW;
+    samplerInfo.addressModeU = textureSampler.m_addressModeU;
+    samplerInfo.addressModeV = textureSampler.m_addressModeV;
+    samplerInfo.addressModeW = textureSampler.m_addressModeW;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
     samplerInfo.compareEnable = VK_FALSE;
     samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
@@ -134,31 +121,31 @@ void Texture::createTextureSampler(TextureSampler textureSampler) {
     samplerInfo.maxAnisotropy = 16;
     samplerInfo.anisotropyEnable = VK_TRUE;
     samplerInfo.minLod = 0;
-    samplerInfo.maxLod = static_cast<float>(mipLevels);
+    samplerInfo.maxLod = static_cast<float>(m_mipLevels);
     samplerInfo.mipLodBias = 0;
 
-    if (vkCreateSampler(renderer->device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+    if (vkCreateSampler(m_renderer->m_device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }   
 }
 
-void Texture::destroy()
+void Texture2D::Destroy()
 {
-    vkDestroyImageView(renderer->device, view, nullptr);
-    vkDestroyImage(renderer->device, image, nullptr);
-    vkFreeMemory(renderer->device, deviceMemory, nullptr);
-    vkDestroySampler(renderer->device, sampler, nullptr);
+    vkDestroyImageView(m_renderer->m_device, m_view, nullptr);
+    vkDestroyImage(m_renderer->m_device, m_image, nullptr);
+    vkFreeMemory(m_renderer->m_device, m_deviceMemory, nullptr);
+    vkDestroySampler(m_renderer->m_device, m_sampler, nullptr);
 }
 
 
-void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
-    this->renderer = renderer;
+void Texture3D::FromFolder(std::string const folderName, Renderer* renderer) {
+    this->m_renderer = renderer;
     std::string fileNames[] = { "negx.hdr", "posx.hdr", "negy.hdr", "posy.hdr", "negz.hdr", "posz.hdr" }; // TODO - Should be a parameter?
     
     float *imageData[6];
     for(int i = 0; i < 6; i++) {
         int channels;
-        imageData[i] = stbi_loadf((folderName + '/' + fileNames[i]).c_str(), (int*)&width, (int*)&height, &channels, STBI_rgb_alpha);
+        imageData[i] = stbi_loadf((folderName + '/' + fileNames[i]).c_str(), (int*)&m_width, (int*)&m_height, &channels, STBI_rgb_alpha);
 
         if(!imageData[i]) {
             std::cerr << "Error loading image: " << folderName  << std::endl;
@@ -166,56 +153,56 @@ void Texture3D::fromFolder(std::string folderName, Renderer *renderer) {
         }
     }
 
-    imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
-    faceSize = width * height * STBI_rgb_alpha * 4;
+    m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO - Make parameter
+    m_faceSize = m_width * m_height * STBI_rgb_alpha * 4;
 
-    createTextureImage(imageData);
-    createTextureImageView();
-    createTextureSampler();
+    CreateTextureImage(imageData);
+    CreateTextureImageView();
+    CreateTextureSampler();
     
-    descriptor.sampler = sampler;
-    descriptor.imageView = view;
-    descriptor.imageLayout = imageLayout;
+    m_descriptor.sampler = m_sampler;
+    m_descriptor.imageView = m_view;
+    m_descriptor.imageLayout = m_imageLayout;
 
     for(int i = 0; i < 6; i++) {
         stbi_image_free(imageData[i]);
     }
 }
 
-void Texture3D::createTextureImage(float *imageData[]) {
-    mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1);
-    VkDeviceSize imageSize = faceSize * 6;
+void Texture3D::CreateTextureImage(float const* const imageData[]) {
+    m_mipLevels = static_cast<uint32_t>(floor(log2(std::max(m_width, m_height))) + 1);
+    VkDeviceSize imageSize = m_faceSize * 6;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    renderer->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    m_renderer->CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(renderer->device, stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(m_renderer->m_device, stagingBufferMemory, 0, imageSize, 0, &data);
         size_t offset = 0;
         for(int i = 0; i < 6; i++) {
-            memcpy(static_cast<uint8_t*>(data) + offset, imageData[i], faceSize);
-            offset += faceSize;
+            memcpy(static_cast<uint8_t*>(data) + offset, imageData[i], m_faceSize);
+            offset += m_faceSize;
         }
-    vkUnmapMemory(renderer->device, stagingBufferMemory);
+    vkUnmapMemory(m_renderer->m_device, stagingBufferMemory);
 
-    renderer->createImageCube(width, height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, deviceMemory);
+    m_renderer->CreateImageCube(m_width, m_height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_deviceMemory);
 
-    renderer->transitionImageLayout(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 6);
-    renderer->copyBufferToImageCube(stagingBuffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height), mipLevels, faceSize);
+    m_renderer->TransitionImageLayout(m_image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 6);
+    m_renderer->CopyBufferToImageCube(stagingBuffer, m_image, static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height), m_mipLevels, m_faceSize);
     //renderer->transitionImageLayout(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 6);
 
-    vkDestroyBuffer(renderer->device, stagingBuffer, nullptr);
-    vkFreeMemory(renderer->device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(m_renderer->m_device, stagingBuffer, nullptr);
+    vkFreeMemory(m_renderer->m_device, stagingBufferMemory, nullptr);
 
-    renderer->generateMipmapsCube(image, VK_FORMAT_R32G32B32A32_SFLOAT, width, height, mipLevels);
+    m_renderer->GenerateMipmapsCube(m_image, VK_FORMAT_R32G32B32A32_SFLOAT, m_width, m_height, m_mipLevels);
 }
 
-void Texture3D::createTextureImageView() {
-    view = renderer->createImageViewCube(image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+void Texture3D::CreateTextureImageView() {
+    m_view = m_renderer->CreateImageViewCube(m_image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, m_mipLevels);
 }
 
-void Texture3D::createTextureSampler() {
+void Texture3D::CreateTextureSampler() {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -231,169 +218,168 @@ void Texture3D::createTextureSampler() {
     samplerInfo.maxAnisotropy = 16;
     samplerInfo.anisotropyEnable = VK_TRUE;
     samplerInfo.minLod = 0;
-    samplerInfo.maxLod = static_cast<float>(mipLevels);
+    samplerInfo.maxLod = static_cast<float>(m_mipLevels);
     samplerInfo.mipLodBias = 0;
 
-    if (vkCreateSampler(renderer->device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+    if (vkCreateSampler(m_renderer->m_device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }   
 }
 
-void Texture3D::destroy() {
-    vkDestroyImageView(renderer->device, view, nullptr);
-    vkDestroyImage(renderer->device, image, nullptr);
-    vkFreeMemory(renderer->device, deviceMemory, nullptr);
-    vkDestroySampler(renderer->device, sampler, nullptr);
+void Texture3D::Destroy() {
+    vkDestroyImageView(m_renderer->m_device, m_view, nullptr);
+    vkDestroyImage(m_renderer->m_device, m_image, nullptr);
+    vkFreeMemory(m_renderer->m_device, m_deviceMemory, nullptr);
+    vkDestroySampler(m_renderer->m_device, m_sampler, nullptr);
 }
 
 
-Primitive::Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material &material) : firstIndex(firstIndex), indexCount(indexCount), vertexCount(vertexCount), material(material) {
-    hasIndices = indexCount > 0;
+Primitive::Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material* material) : m_firstIndex(firstIndex), m_indexCount(indexCount), m_vertexCount(vertexCount), m_material(material) {
+    m_hasIndices = indexCount > 0;
 };
 
-void Primitive::setBoundingBox(glm::vec3 min, glm::vec3 max) {
-    bb.min = min;
-    bb.max = max;
-    bb.valid = true;
+void Primitive::SetBoundingBox(glm::vec3 const& min, glm::vec3 const& max) {
+    m_boundingBox.m_min = min;
+    m_boundingBox.m_max = max;
+    m_boundingBox.m_valid = true;
 }
 
-Mesh::Mesh(Renderer *renderer, glm::mat4 matrix) {
-    this->renderer = renderer;
-    this->uniformBlock.matrix = matrix;
+Mesh::Mesh(Renderer* renderer, glm::mat4 const& matrix) {
+    this->m_renderer = renderer;
+    this->m_uniformBlock.m_matrix = matrix;
     
-    renderer->createBuffer(
-        sizeof(uniformBlock),
+    renderer->CreateBuffer(
+        sizeof(m_uniformBlock),
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-        uniformBuffer.buffer,
-        uniformBuffer.memory
+        m_uniformBuffer.m_buffer,
+        m_uniformBuffer.m_memory
     );
 
-    vkMapMemory(renderer->device, uniformBuffer.memory, 0, sizeof(uniformBlock), 0, &uniformBuffer.mapped);
-    memcpy(uniformBuffer.mapped, &uniformBlock, sizeof(uniformBlock));
+    vkMapMemory(renderer->m_device, m_uniformBuffer.m_memory, 0, sizeof(m_uniformBlock), 0, &m_uniformBuffer.m_mapped);
+    memcpy(m_uniformBuffer.m_mapped, &m_uniformBlock, sizeof(m_uniformBlock));
 
-    uniformBuffer.descriptor = { uniformBuffer.buffer, 0, sizeof(uniformBlock) };
+    m_uniformBuffer.m_descriptor = { m_uniformBuffer.m_buffer, 0, sizeof(m_uniformBlock) };
 };
 
 Mesh::~Mesh() {
-    vkDestroyBuffer(renderer->device, uniformBuffer.buffer, nullptr);
-    vkFreeMemory(renderer->device, uniformBuffer.memory, nullptr);
+    vkDestroyBuffer(m_renderer->m_device, m_uniformBuffer.m_buffer, nullptr);
+    vkFreeMemory(m_renderer->m_device, m_uniformBuffer.m_memory, nullptr);
     
-    for (Primitive* p : primitives)
+    for (Primitive* p : m_primitives)
         delete p;
 }
 
-void Mesh::setBoundingBox(glm::vec3 min, glm::vec3 max) {
-    bb.min = min;
-    bb.max = max;
-    bb.valid = true;
+void Mesh::SetBoundingBox(glm::vec3 const& min, glm::vec3 const& max) {
+    m_boundingBox.m_min = min;
+    m_boundingBox.m_max = max;
+    m_boundingBox.m_valid = true;
 }
 
 
-glm::mat4 Node::localMatrix() {
-    return glm::translate(glm::mat4(1.0f), translation) * glm::mat4(rotation) * glm::scale(glm::mat4(1.0f), scale) * matrix;
+glm::mat4 Node::GetLocalMatrix() {
+    return glm::translate(glm::mat4(1.0f), m_translation) * glm::mat4(m_rotation) * glm::scale(glm::mat4(1.0f), m_scale) * m_matrix;
 }
 
-glm::mat4 Node::getMatrix() {
-    glm::mat4 m = localMatrix();
+glm::mat4 Node::GetWorldMatrix() {
+    glm::mat4 m = GetLocalMatrix();
     
-    Node *p = parent;
+    Node *p = m_parent;
     while (p) {
-        m = p->localMatrix() * m;
-        p = p->parent;
+        m = p->GetLocalMatrix() * m;
+        p = p->m_parent;
     }
     
     return m;
 }
 
-void Node::update() {
-    if (mesh) {
-        mesh->uniformBlock.matrix = getMatrix();
-        memcpy(mesh->uniformBuffer.mapped, &mesh->uniformBlock, sizeof(mesh->uniformBlock));
+void Node::Update() {
+    if (m_mesh) {
+        m_mesh->m_uniformBlock.m_matrix = GetWorldMatrix();
+        memcpy(m_mesh->m_uniformBuffer.m_mapped, &m_mesh->m_uniformBlock, sizeof(m_mesh->m_uniformBlock));
     }
 
-    for (auto& child : children) {
-        child->update();
+    for (auto& child : m_children) {
+        child->Update();
     }
 }
 
 Node::~Node() {
-    if (mesh) {
-        delete mesh;
+    if (m_mesh) {
+        delete m_mesh;
     }
 
-    for (auto& child : children) {
+    for (auto& child : m_children) {
         delete child;
     }
 }
 
 
-void Model::destroy()
+void Model::Destroy()
 {
-    if (vertices.buffer != VK_NULL_HANDLE) {
-        vkDestroyBuffer(renderer->device, vertices.buffer, nullptr);
-        vkFreeMemory(renderer->device, vertices.memory, nullptr);
+    if (m_vertices.m_buffer != VK_NULL_HANDLE) {
+        vkDestroyBuffer(m_renderer->m_device, m_vertices.m_buffer, nullptr);
+        vkFreeMemory(m_renderer->m_device, m_vertices.m_memory, nullptr);
     }
 
-    if (indices.buffer != VK_NULL_HANDLE) {
-        vkDestroyBuffer(renderer->device, indices.buffer, nullptr);
-        vkFreeMemory(renderer->device, indices.memory, nullptr);
+    if (m_indices.m_buffer != VK_NULL_HANDLE) {
+        vkDestroyBuffer(m_renderer->m_device, m_indices.m_buffer, nullptr);
+        vkFreeMemory(m_renderer->m_device, m_indices.m_memory, nullptr);
     }
 
-    for (auto texture : textures) {
-        texture.destroy();
+    for (auto texture : m_textures) {
+        texture.Destroy();
     }
 
-    textures.resize(0);
-    textureSamplers.resize(0);
+    m_textures.resize(0);
+    m_textureSamplers.resize(0);
 
-    for (auto node : nodes) {
+    for (auto node : m_nodes) {
         delete node;
     }
 
-    materials.resize(0);
-    nodes.resize(0);
-    linearNodes.resize(0);
+    m_materials.resize(0);
+    m_nodes.resize(0);
+    m_linearNodes.resize(0);
 };
 
-void Model::loadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeIndex, const tinygltf::Model &model, std::vector<uint32_t>& indexBuffer, std::vector<Vertex>& vertexBuffer, float globalscale)
+void Model::LoadNode(Node* parent, tinygltf::Node const& node, uint32_t nodeIndex, tinygltf::Model const& model, std::vector<uint32_t>& indexBuffer, std::vector<Vertex>& vertexBuffer)
 {
     Node *newNode = new Node{};
-    newNode->index = nodeIndex;
-    newNode->parent = parent;
-    newNode->name = node.name;
-    newNode->matrix = glm::mat4(1.0f);
+    newNode->m_index = nodeIndex;
+    newNode->m_parent = parent;
+    newNode->m_matrix = glm::mat4(1.0f);
 
     // Generate local node matrix
     glm::vec3 translation = glm::vec3(0.0f);
     if (node.translation.size() == 3) {
         translation = glm::make_vec3(node.translation.data());
-        newNode->translation = translation;
+        newNode->m_translation = translation;
     }
     if (node.rotation.size() == 4) {
         glm::quat q = glm::make_quat(node.rotation.data());
-        newNode->rotation = glm::mat4(q);
+        newNode->m_rotation = glm::mat4(q);
     }
     glm::vec3 scale = glm::vec3(1.0f);
     if (node.scale.size() == 3) {
         scale = glm::make_vec3(node.scale.data());
-        newNode->scale = scale;
+        newNode->m_scale = scale;
     }
     if (node.matrix.size() == 16) {
-        newNode->matrix = glm::make_mat4x4(node.matrix.data());
+        newNode->m_matrix = glm::make_mat4x4(node.matrix.data());
     };
 
     // Node with children
     if (node.children.size() > 0) {
         for (size_t i = 0; i < node.children.size(); i++) {
-            loadNode(newNode, model.nodes[node.children[i]], node.children[i], model, indexBuffer, vertexBuffer, globalscale);
+            LoadNode(newNode, model.nodes[node.children[i]], node.children[i], model, indexBuffer, vertexBuffer);
         }
     }
 
     // Node contains mesh data
     if (node.mesh > -1) {
         const tinygltf::Mesh mesh = model.meshes[node.mesh];
-        Mesh *newMesh = new Mesh(renderer, newNode->matrix);
+        Mesh *newMesh = new Mesh(m_renderer, newNode->m_matrix);
         for (size_t j = 0; j < mesh.primitives.size(); j++) {
             const tinygltf::Primitive &primitive = mesh.primitives[j];
             uint32_t indexStart = static_cast<uint32_t>(indexBuffer.size());
@@ -440,10 +426,10 @@ void Model::loadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeInde
 
                 for (size_t v = 0; v < posAccessor.count; v++) {
                     Vertex vert{};
-                    vert.position = glm::vec4(glm::make_vec3(&bufferPos[v * 3]), 1.0f);
-                    vert.normal = glm::normalize(glm::vec3(bufferNormals ? glm::make_vec3(&bufferNormals[v * 3]) : glm::vec3(0.0f)));
-                    vert.uv0 = bufferTexCoordSet0 ? glm::make_vec2(&bufferTexCoordSet0[v * 2]) : glm::vec3(0.0f);
-                    vert.uv1 = bufferTexCoordSet1 ? glm::make_vec2(&bufferTexCoordSet1[v * 2]) : glm::vec3(0.0f);
+                    vert.m_position = glm::vec4(glm::make_vec3(&bufferPos[v * 3]), 1.0f);
+                    vert.m_normal = glm::normalize(glm::vec3(bufferNormals ? glm::make_vec3(&bufferNormals[v * 3]) : glm::vec3(0.0f)));
+                    vert.m_uvSet0 = bufferTexCoordSet0 ? glm::make_vec2(&bufferTexCoordSet0[v * 2]) : glm::vec3(0.0f);
+                    vert.m_uvSet1 = bufferTexCoordSet1 ? glm::make_vec2(&bufferTexCoordSet1[v * 2]) : glm::vec3(0.0f);
 
                     vertexBuffer.push_back(vert);
                 }
@@ -487,51 +473,49 @@ void Model::loadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeInde
                 }
             }
 
-            Primitive *newPrimitive = new Primitive(indexStart, indexCount, vertexCount, primitive.material > -1 ? materials[primitive.material] : materials.back());
-            newPrimitive->setBoundingBox(posMin, posMax);
-            newMesh->primitives.push_back(newPrimitive);
+            Primitive *newPrimitive = new Primitive(indexStart, indexCount, vertexCount, primitive.material > -1 ? &m_materials[primitive.material] : &m_materials.back());
+            newPrimitive->SetBoundingBox(posMin, posMax);
+            newMesh->m_primitives.push_back(newPrimitive);
         }
 
         // Mesh BB from BBs of primitives
-        for (auto p : newMesh->primitives) {
-            if (p->bb.valid && !newMesh->bb.valid) {
-                newMesh->bb = p->bb;
-                newMesh->bb.valid = true;
+        for (auto p : newMesh->m_primitives) {
+            if (p->m_boundingBox.m_valid && !newMesh->m_boundingBox.m_valid) {
+                newMesh->m_boundingBox = p->m_boundingBox;
+                newMesh->m_boundingBox.m_valid = true;
             }
-            newMesh->bb.min = glm::min(newMesh->bb.min, p->bb.min);
-            newMesh->bb.max = glm::max(newMesh->bb.max, p->bb.max);
+            newMesh->m_boundingBox.m_min = glm::min(newMesh->m_boundingBox.m_min, p->m_boundingBox.m_min);
+            newMesh->m_boundingBox.m_max = glm::max(newMesh->m_boundingBox.m_max, p->m_boundingBox.m_max);
         }
-        newNode->mesh = newMesh;
+        newNode->m_mesh = newMesh;
     }
 
     if (parent) {
-        parent->children.push_back(newNode);
+        parent->m_children.push_back(newNode);
     } else {
-        nodes.push_back(newNode);
+        m_nodes.push_back(newNode);
     }
-    linearNodes.push_back(newNode);
+    m_linearNodes.push_back(newNode);
 }
 
-void Model::loadTextures(tinygltf::Model &gltfModel, Renderer* renderer)
+void Model::LoadTextures(tinygltf::Model& gltfModel, Renderer* renderer)
 {
-    for (tinygltf::Texture &tex : gltfModel.textures) {
+    for (tinygltf::Texture& tex : gltfModel.textures) {
         tinygltf::Image image = gltfModel.images[tex.source];
         
         TextureSampler textureSampler;
-        if (tex.sampler == -1) {
-            // No sampler specified, use a default one
-            textureSampler = TextureSampler::defaultSampler;
-        } else {
-            textureSampler = textureSamplers[tex.sampler];
+        if (tex.sampler != -1) 
+        {
+            textureSampler = m_textureSamplers[tex.sampler];
         }
 
-        Texture texture;
-        texture.fromglTfImage(image, textureSampler, renderer);
-        textures.push_back(texture);
+        Texture2D texture;
+        texture.FromglTfImage(image, textureSampler, renderer);
+        m_textures.push_back(texture);
     }
 }
 
-VkSamplerAddressMode Model::getVkWrapMode(int32_t wrapMode) 
+VkSamplerAddressMode Model::GetVkWrapMode(int32_t wrapMode) 
 {
     switch (wrapMode) {
     case 10497:
@@ -545,7 +529,7 @@ VkSamplerAddressMode Model::getVkWrapMode(int32_t wrapMode)
     }
 }
 
-VkFilter Model::getVkFilterMode(int32_t filterMode) 
+VkFilter Model::GetVkFilterMode(int32_t filterMode) 
 {
     switch (filterMode) {
     case 9728:
@@ -565,85 +549,85 @@ VkFilter Model::getVkFilterMode(int32_t filterMode)
     }
 }
 
-void Model::loadTextureSamplers(tinygltf::Model &gltfModel)
+void Model::LoadTextureSamplers(tinygltf::Model const& gltfModel)
 {
     for (tinygltf::Sampler smpl : gltfModel.samplers) {
         TextureSampler sampler{};
-        sampler.minFilter = getVkFilterMode(smpl.minFilter);
-        sampler.magFilter = getVkFilterMode(smpl.magFilter);
-        sampler.addressModeU = getVkWrapMode(smpl.wrapS);
-        sampler.addressModeV = getVkWrapMode(smpl.wrapT);
-        sampler.addressModeW = sampler.addressModeV;
-        textureSamplers.push_back(sampler);
+        sampler.m_minFilter = GetVkFilterMode(smpl.minFilter);
+        sampler.m_magFilter = GetVkFilterMode(smpl.magFilter);
+        sampler.m_addressModeU = GetVkWrapMode(smpl.wrapS);
+        sampler.m_addressModeV = GetVkWrapMode(smpl.wrapT);
+        sampler.m_addressModeW = sampler.m_addressModeV;
+        m_textureSamplers.push_back(sampler);
     }
 }
 
-void Model::loadMaterials(tinygltf::Model &gltfModel)
+void Model::LoadMaterials(tinygltf::Model& gltfModel)
 {
-    for (tinygltf::Material &mat : gltfModel.materials) {
+    for (tinygltf::Material& mat : gltfModel.materials) {
         Material material{};
         if (mat.values.find("baseColorTexture") != mat.values.end()) {
-            material.baseColorTexture = &textures[mat.values["baseColorTexture"].TextureIndex()];
-            material.baseColorTextCoordSet = mat.values["baseColorTexture"].TextureTexCoord();
+            material.m_baseColorTexture = &m_textures[mat.values["baseColorTexture"].TextureIndex()];
+            material.m_baseColorTextCoordSet = mat.values["baseColorTexture"].TextureTexCoord();
         }
         if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
-            material.metallicRoughnessTexture = &textures[mat.values["metallicRoughnessTexture"].TextureIndex()];
-            material.metallicRoughnessTextCoordSet = mat.values["metallicRoughnessTexture"].TextureTexCoord();
+            material.m_metallicRoughnessTexture = &m_textures[mat.values["metallicRoughnessTexture"].TextureIndex()];
+            material.m_metallicRoughnessTextCoordSet = mat.values["metallicRoughnessTexture"].TextureTexCoord();
         }
         if (mat.values.find("roughnessFactor") != mat.values.end()) {
-            material.roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
+            material.m_roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
         }
         if (mat.values.find("metallicFactor") != mat.values.end()) {
-            material.metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());
+            material.m_metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());
         }
         if (mat.values.find("baseColorFactor") != mat.values.end()) {
-            material.baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
+            material.m_baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
         }				
         if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
-            material.normalTexture = &textures[mat.additionalValues["normalTexture"].TextureIndex()];
-            material.normalTextCoordSet = mat.additionalValues["normalTexture"].TextureTexCoord();
+            material.m_normalTexture = &m_textures[mat.additionalValues["normalTexture"].TextureIndex()];
+            material.m_normalTextCoordSet = mat.additionalValues["normalTexture"].TextureTexCoord();
         }
         if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
-            material.emissiveTexture = &textures[mat.additionalValues["emissiveTexture"].TextureIndex()];
-            material.emissiveTextCoordSet = mat.additionalValues["emissiveTexture"].TextureTexCoord();
+            material.m_emissiveTexture = &m_textures[mat.additionalValues["emissiveTexture"].TextureIndex()];
+            material.m_emissiveTextCoordSet = mat.additionalValues["emissiveTexture"].TextureTexCoord();
         }
         if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
-            material.occlusionTexture = &textures[mat.additionalValues["occlusionTexture"].TextureIndex()];
-            material.occlusionTextCoordSet = mat.additionalValues["occlusionTexture"].TextureTexCoord();
+            material.m_occlusionTexture = &m_textures[mat.additionalValues["occlusionTexture"].TextureIndex()];
+            material.m_occlusionTextCoordSet = mat.additionalValues["occlusionTexture"].TextureTexCoord();
         }
         if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
             tinygltf::Parameter param = mat.additionalValues["alphaMode"];
             if (param.string_value == "BLEND") {
-                material.alphaMode = Material::ALPHAMODE_BLEND;
+                material.m_alphaMode = Material::ALPHAMODE_BLEND;
             }
             if (param.string_value == "MASK") {
-                material.alphaCutoff = 0.5f;
-                material.alphaMode = Material::ALPHAMODE_MASK;
+                material.m_alphaCutoff = 0.5f;
+                material.m_alphaMode = Material::ALPHAMODE_MASK;
             }
         }
         if (mat.additionalValues.find("alphaCutoff") != mat.additionalValues.end()) {
-            material.alphaCutoff = static_cast<float>(mat.additionalValues["alphaCutoff"].Factor());
+            material.m_alphaCutoff = static_cast<float>(mat.additionalValues["alphaCutoff"].Factor());
         }
         if (mat.additionalValues.find("emissiveFactor") != mat.additionalValues.end()) {
-            material.emissiveFactor = glm::vec4(glm::make_vec3(mat.additionalValues["emissiveFactor"].ColorFactor().data()), 1.0);
-            material.emissiveFactor = glm::vec4(0.0f);
+            material.m_emissiveFactor = glm::vec4(glm::make_vec3(mat.additionalValues["emissiveFactor"].ColorFactor().data()), 1.0);
+            material.m_emissiveFactor = glm::vec4(0.0f);
         }
 
-        materials.push_back(material);
+        m_materials.push_back(material);
     }
 
     // Push a default material at the end of the list for meshes with no material assigned
-    materials.push_back(Material());
+    m_materials.push_back(Material());
 }
 
-void Model::loadFromFile(std::string filename, Renderer *renderer, float scale /*= 1.0f*/)
+void Model::LoadFromFile(std::string const filename, Renderer* renderer)
 {
     tinygltf::Model gltfModel;
     tinygltf::TinyGLTF gltfContext;
     std::string error;
     std::string warning;
 
-    this->renderer = renderer;
+    this->m_renderer = renderer;
 
     bool binary = false;
     size_t extpos = filename.rfind('.', filename.length());
@@ -659,20 +643,20 @@ void Model::loadFromFile(std::string filename, Renderer *renderer, float scale /
     std::vector<uint32_t> indexBuffer;
 
     if (fileLoaded) {
-        loadTextureSamplers(gltfModel);
-        loadTextures(gltfModel, renderer);
-        loadMaterials(gltfModel);
+        LoadTextureSamplers(gltfModel);
+        LoadTextures(gltfModel, renderer);
+        LoadMaterials(gltfModel);
 
         const tinygltf::Scene &scene = gltfModel.scenes[gltfModel.defaultScene > -1 ? gltfModel.defaultScene : 0];
         for (size_t i = 0; i < scene.nodes.size(); i++) {
             const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
-            loadNode(nullptr, node, scene.nodes[i], gltfModel, indexBuffer, vertexBuffer, scale);
+            LoadNode(nullptr, node, scene.nodes[i], gltfModel, indexBuffer, vertexBuffer);
         }
 
-        for (auto node : linearNodes) {
+        for (auto node : m_linearNodes) {
             // Initial pose
-            if (node->mesh) {
-                node->update();
+            if (node->m_mesh) {
+                node->Update();
             }
         }
     } else {
@@ -680,150 +664,125 @@ void Model::loadFromFile(std::string filename, Renderer *renderer, float scale /
         return;
     }
 
-    indices.count = static_cast<uint32_t>(indexBuffer.size());
+    m_indices.m_count = static_cast<uint32_t>(indexBuffer.size());
 
-    createVertexBuffer(vertexBuffer);
-    if (indices.count > 0) { 
-        createIndexBuffer(indexBuffer);
+    CreateVertexBuffer(vertexBuffer);
+    if (m_indices.m_count > 0) { 
+        CreateIndexBuffer(indexBuffer);
     }
 
-    getSceneDimensions();
+    GetSceneDimensions();
 }
 
-void Model::drawNode(Node *node, VkCommandBuffer commandBuffer)
+void Model::DrawNode(Node const* node, VkCommandBuffer commandBuffer)
 {
-    if (node->mesh) {
-        for (Primitive *primitive : node->mesh->primitives) {
-            vkCmdDrawIndexed(commandBuffer, primitive->indexCount, 1, primitive->firstIndex, 0, 0);
+    if (node->m_mesh) {
+        for (Primitive *primitive : node->m_mesh->m_primitives) {
+            vkCmdDrawIndexed(commandBuffer, primitive->m_indexCount, 1, primitive->m_firstIndex, 0, 0);
         }
     }
-    for (auto& child : node->children) {
-        drawNode(child, commandBuffer);
+    for (auto& child : node->m_children) {
+        DrawNode(child, commandBuffer);
     }
 }
 
-void Model::draw(VkCommandBuffer commandBuffer)
+void Model::Draw(VkCommandBuffer commandBuffer)
 {
     const VkDeviceSize offsets[1] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertices.buffer, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, indices.buffer, 0, VK_INDEX_TYPE_UINT32);
-    for (auto& node : nodes) {
-        drawNode(node, commandBuffer);
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertices.m_buffer, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, m_indices.m_buffer, 0, VK_INDEX_TYPE_UINT32);
+    for (auto& node : m_nodes) {
+        DrawNode(node, commandBuffer);
     }
 }
 
-void Model::calculateBoundingBox(Node *node, Node *parent) {
-    BoundingBox parentBvh = parent ? parent->bvh : BoundingBox(dimensions.min, dimensions.max);
+void Model::CalculateBoundingBox(Node* node, Node const* parent) {
+    BoundingBox parentBvh = parent ? parent->m_boundingBox : BoundingBox(m_dimensions.m_min, m_dimensions.m_max);
 
-    if (node->mesh) {
-        if (node->mesh->bb.valid) {
-            node->aabb = node->mesh->bb.getAABB(node->getMatrix());
-            if (node->children.size() == 0) {
-                node->bvh.min = node->aabb.min;
-                node->bvh.max = node->aabb.max;
-                node->bvh.valid = true;
+    if (node->m_mesh) {
+        if (node->m_mesh->m_boundingBox.m_valid) {
+            node->m_boundingBox2 = node->m_mesh->m_boundingBox.FromMatrix(node->GetWorldMatrix());
+            if (node->m_children.size() == 0) {
+                node->m_boundingBox.m_min = node->m_boundingBox2.m_min;
+                node->m_boundingBox.m_max = node->m_boundingBox2.m_max;
+                node->m_boundingBox.m_valid = true;
             }
         }
     }
 
-    parentBvh.min = glm::min(parentBvh.min, node->bvh.min);
-    parentBvh.max = glm::min(parentBvh.max, node->bvh.max);
+    parentBvh.m_min = glm::min(parentBvh.m_min, node->m_boundingBox.m_min);
+    parentBvh.m_max = glm::min(parentBvh.m_max, node->m_boundingBox.m_max);
 
-    for (auto &child : node->children) {
-        calculateBoundingBox(child, node);
+    for (auto &child : node->m_children) {
+        CalculateBoundingBox(child, node);
     }
 }
 
-void Model::getSceneDimensions()
+void Model::GetSceneDimensions()
 {
     // Calculate binary volume hierarchy for all nodes in the scene
-    for (auto node : linearNodes) {
-        calculateBoundingBox(node, nullptr);
+    for (auto node : m_linearNodes) {
+        CalculateBoundingBox(node, nullptr);
     }
 
-    dimensions.min = glm::vec3(FLT_MAX);
-    dimensions.max = glm::vec3(-FLT_MAX);
+    m_dimensions.m_min = glm::vec3(FLT_MAX);
+    m_dimensions.m_max = glm::vec3(-FLT_MAX);
 
-    for (auto node : linearNodes) {
-        if (node->bvh.valid) {
-            dimensions.min = glm::min(dimensions.min, node->bvh.min);
-            dimensions.max = glm::max(dimensions.max, node->bvh.max);
+    for (auto node : m_linearNodes) {
+        if (node->m_boundingBox.m_valid) {
+            m_dimensions.m_min = glm::min(m_dimensions.m_min, node->m_boundingBox.m_min);
+            m_dimensions.m_max = glm::max(m_dimensions.m_max, node->m_boundingBox.m_max);
         }
     }
 
     // Calculate scene aabb
-    aabb = glm::scale(glm::mat4(1.0f), glm::vec3(dimensions.max[0] - dimensions.min[0], dimensions.max[1] - dimensions.min[1], dimensions.max[2] - dimensions.min[2]));
-    aabb[3][0] = dimensions.min[0];
-    aabb[3][1] = dimensions.min[1];
-    aabb[3][2] = dimensions.min[2];
+    m_boundingBox = glm::scale(glm::mat4(1.0f), glm::vec3(m_dimensions.m_max[0] - m_dimensions.m_min[0], m_dimensions.m_max[1] - m_dimensions.m_min[1], m_dimensions.m_max[2] - m_dimensions.m_min[2]));
+    m_boundingBox[3][0] = m_dimensions.m_min[0];
+    m_boundingBox[3][1] = m_dimensions.m_min[1];
+    m_boundingBox[3][2] = m_dimensions.m_min[2];
 }
 
-Node* Model::findNode(Node *parent, uint32_t index) {
-    Node* nodeFound = nullptr;
-    if (parent->index == index) {
-        return parent;
-    }
-    for (auto& child : parent->children) {
-        nodeFound = findNode(child, index);
-        if (nodeFound) {
-            break;
-        }
-    }
-    return nodeFound;
-}
-
-Node* Model::nodeFromIndex(uint32_t index) {
-    Node* nodeFound = nullptr;
-    for (auto &node : nodes) {
-        nodeFound = findNode(node, index);
-        if (nodeFound) {
-            break;
-        }
-    }
-    return nodeFound;
-}
-
-void Model::createVertexBuffer(std::vector<Vertex> vertices) {
+void Model::CreateVertexBuffer(std::vector<Vertex> const& vertices) {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    renderer->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    m_renderer->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(renderer->device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(m_renderer->m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, vertices.data(), (size_t) bufferSize);
-    vkUnmapMemory(renderer->device, stagingBufferMemory);
+    vkUnmapMemory(m_renderer->m_device, stagingBufferMemory);
 
-    renderer->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->vertices.buffer, this->vertices.memory);
+    m_renderer->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_vertices.m_buffer, this->m_vertices.m_memory);
 
-    renderer->copyBuffer(stagingBuffer, this->vertices.buffer, bufferSize);
+    m_renderer->CopyBuffer(stagingBuffer, this->m_vertices.m_buffer, bufferSize);
 
-    vkDestroyBuffer(renderer->device, stagingBuffer, nullptr);
-    vkFreeMemory(renderer->device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(m_renderer->m_device, stagingBuffer, nullptr);
+    vkFreeMemory(m_renderer->m_device, stagingBufferMemory, nullptr);
 }
 
-void Model::createIndexBuffer(std::vector<uint32_t> indices) {
+void Model::CreateIndexBuffer(std::vector<uint32_t> const& indices) {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    renderer->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    m_renderer->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(renderer->device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(m_renderer->m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, indices.data(), (size_t) bufferSize);
-    vkUnmapMemory(renderer->device, stagingBufferMemory);
+    vkUnmapMemory(m_renderer->m_device, stagingBufferMemory);
 
-    renderer->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->indices.buffer, this->indices.memory);
+    m_renderer->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_indices.m_buffer, this->m_indices.m_memory);
 
-    renderer->copyBuffer(stagingBuffer, this->indices.buffer, bufferSize);
+    m_renderer->CopyBuffer(stagingBuffer, this->m_indices.m_buffer, bufferSize);
 
-    vkDestroyBuffer(renderer->device, stagingBuffer, nullptr);
-    vkFreeMemory(renderer->device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(m_renderer->m_device, stagingBuffer, nullptr);
+    vkFreeMemory(m_renderer->m_device, stagingBufferMemory, nullptr);
 }
 
-VkVertexInputBindingDescription Model::Vertex::getBindingDescription() {
+VkVertexInputBindingDescription Model::Vertex::GetBindingDescription() {
     VkVertexInputBindingDescription bindingDescription = {};
     bindingDescription.binding = 0;
     bindingDescription.stride = sizeof(Vertex);
@@ -832,28 +791,28 @@ VkVertexInputBindingDescription Model::Vertex::getBindingDescription() {
     return bindingDescription;
 }
 
-std::array<VkVertexInputAttributeDescription, 4> Model::Vertex::getAttributeDescriptions() {
+std::array<VkVertexInputAttributeDescription, 4> Model::Vertex::GetAttributeDescriptions() {
     std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions = {};
 
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
     attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[0].offset = offsetof(Vertex, position);
+    attributeDescriptions[0].offset = offsetof(Vertex, m_position);
 
     attributeDescriptions[1].binding = 0;
     attributeDescriptions[1].location = 1;
     attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[1].offset = offsetof(Vertex, normal);
+    attributeDescriptions[1].offset = offsetof(Vertex, m_normal);
 
     attributeDescriptions[2].binding = 0;
     attributeDescriptions[2].location = 2;
     attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-    attributeDescriptions[2].offset = offsetof(Vertex, uv0);
+    attributeDescriptions[2].offset = offsetof(Vertex, m_uvSet0);
 
     attributeDescriptions[3].binding = 0;
     attributeDescriptions[3].location = 3;
     attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
-    attributeDescriptions[3].offset = offsetof(Vertex, uv1);
+    attributeDescriptions[3].offset = offsetof(Vertex, m_uvSet1);
 
     return attributeDescriptions;
 }

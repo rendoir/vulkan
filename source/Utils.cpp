@@ -2,9 +2,14 @@
 
 #include <fstream>
 
-Settings settings;
+Settings g_settings;
 
-std::vector<char> readFile(const std::string& filename) {
+bool QueueFamilyIndices::IsComplete() const
+{
+    return m_graphicsFamily.has_value() && m_presentFamily.has_value();
+}
+
+std::vector<char> ReadFile(std::string const& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open()) {

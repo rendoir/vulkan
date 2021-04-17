@@ -9,45 +9,47 @@ struct Texture3D;
 class Model;
 class Renderer;
 
-class Skybox {
+class Skybox
+{
 public:
-    Model* model;
-    Texture3D* textureCube;
-    Renderer* renderer;
+    Renderer* m_renderer;
 
-    VkPipelineLayout pipelineLayout;
-    VkPipeline pipeline;
+    Model* m_model = nullptr;
+    Texture3D* m_textureCube = nullptr;
 
-    VkDescriptorPool descriptorPool;
-    VkDescriptorSetLayout descriptorSetLayout;
-    std::vector<VkDescriptorSet> descriptorSets;
+    VkPipeline m_pipeline = VK_NULL_HANDLE;
+    VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
 
-    std::vector<VkBuffer> uniformBuffers;
-    std::vector<VkDeviceMemory> uniformBuffersMemory;
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
+    std::vector<VkDescriptorSet> m_descriptorSets;
 
-    SkyboxMatrices uboMatrices;
+    std::vector<VkBuffer> m_uniformBuffers;
+    std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+
+    SkyboxMatrices m_uboMatrices;
     
     struct Vertex {
-        glm::vec3 position;
+        glm::vec3 m_position;
 
-        static VkVertexInputBindingDescription getBindingDescription();
-        static std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions();
+        static VkVertexInputBindingDescription GetBindingDescription();
+        static std::array<VkVertexInputAttributeDescription, 1> GetAttributeDescriptions();
     };
 
 public:
     Skybox(Renderer* renderer, Texture3D* texture);
     ~Skybox();
 
-    void createUniformBuffers();
-    void createDescriptors();
-    void createPipeline();
+    void CreateUniformBuffers();
+    void CreateDescriptors();
+    void CreatePipeline();
 
-    void draw(size_t i);
+    void Draw(int16_t i);
 
-    void updateUniformBuffer(size_t i);
-    void onSwapchainRecreation();
+    void UpdateUniformBuffer(int16_t i);
+    void OnSwapchainRecreation();
 
 private:
-    void init();
-    void cleanup();
+    void Init();
+    void Cleanup();
 };

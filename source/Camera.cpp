@@ -1,56 +1,56 @@
 #include "Camera.hpp"
 
 Camera::Camera() {
-    updateViewMatrix();
-    updateProjectionMatrix();
+    UpdateViewMatrix();
+    UpdateProjectionMatrix();
 }
 
-void Camera::setPosition(glm::vec3 position) {
-    transform.position = position;
-    updateViewMatrix();
+void Camera::SetPosition(glm::vec3 position) {
+    m_transform.m_position = position;
+    UpdateViewMatrix();
 }
 
-void Camera::setRotation(glm::vec3 rotation) {
-    transform.rotation = rotation;
-    updateViewMatrix();
+void Camera::SetRotation(glm::vec3 rotation) {
+    m_transform.m_rotation = rotation;
+    UpdateViewMatrix();
 }
 
-void Camera::setPerspective(float fov, float aspectRatio, float near, float far) {
-    this->fov = fov;
-    this->aspectRatio = aspectRatio;
-    this->near = near;
-    this->far = far;
-    updateProjectionMatrix();
+void Camera::SetPerspective(float fov, float aspectRatio, float near, float far) {
+    this->m_fov = fov;
+    this->m_aspectRatio = aspectRatio;
+    this->m_near = near;
+    this->m_far = far;
+    UpdateProjectionMatrix();
 }
 
-void Camera::setAspectRatio(float aspectRatio) {
-    this->aspectRatio = aspectRatio;
-    updateProjectionMatrix();
+void Camera::SetAspectRatio(float aspectRatio) {
+    this->m_aspectRatio = aspectRatio;
+    UpdateProjectionMatrix();
 }
 
-void Camera::updateViewMatrix() {
+void Camera::UpdateViewMatrix() {
     glm::mat4 rotM = glm::mat4(1.0f);
     glm::mat4 transM;
 
-    rotM = glm::rotate(rotM, glm::radians(transform.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    rotM = glm::rotate(rotM, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    rotM = glm::rotate(rotM, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotM = glm::rotate(rotM, glm::radians(m_transform.m_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    rotM = glm::rotate(rotM, glm::radians(m_transform.m_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotM = glm::rotate(rotM, glm::radians(m_transform.m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    transM = glm::translate(glm::mat4(1.0f), transform.position * glm::vec3(-1.0f, -1.0f, -1.0f));
+    transM = glm::translate(glm::mat4(1.0f), m_transform.m_position * glm::vec3(-1.0f, -1.0f, -1.0f));
 
-    view = transM * rotM;
+    m_view = transM * rotM;
     
-    worldPosition = glm::inverse(view) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Assume the camera is on the root object 
+    m_worldPosition = glm::inverse(m_view) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Assume the camera is on the root object 
 }
 
-void Camera::updateProjectionMatrix() {
-    projection = glm::perspective(fov, aspectRatio, near, far);
-    projection[1][1] *= -1;
+void Camera::UpdateProjectionMatrix() {
+    m_projection = glm::perspective(m_fov, m_aspectRatio, m_near, m_far);
+    m_projection[1][1] *= -1;
 }
 
 
 CameraControl::CameraControl(Camera* camera) {
-    this->camera = camera;
+    this->m_camera = camera;
 }
 
 CameraControl::~CameraControl() { }
@@ -58,32 +58,32 @@ CameraControl::~CameraControl() { }
 OrbitControl::OrbitControl(Camera* camera) : 
     CameraControl(camera) { }
 
-void OrbitControl::handleInput(GLFWwindow *window) {
+void OrbitControl::HandleInput(GLFWwindow *window) {
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
-    if (firstMouse) {
-        lastMouseX = xpos;
-        lastMouseY = ypos;
-        firstMouse = false;
+    if (m_firstMouse) {
+        m_lastMouseX = xpos;
+        m_lastMouseY = ypos;
+        m_firstMouse = false;
     }
 
-    float xoffset = xpos - lastMouseX;
-    float yoffset = lastMouseY - ypos;
+    float xoffset = xpos - m_lastMouseX;
+    float yoffset = m_lastMouseY - ypos;
 
-    lastMouseX = xpos;
-    lastMouseY = ypos;
+    m_lastMouseX = xpos;
+    m_lastMouseY = ypos;
 
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
-        glm::vec3 rotation = camera->getRotation();
-        rotation.x -= yoffset * orbitSensitivity;
-        rotation.y += xoffset * orbitSensitivity;
-        camera->setRotation(rotation);
+        glm::vec3 rotation = m_camera->GetRotation();
+        rotation.x -= yoffset * m_orbitSensitivity;
+        rotation.y += xoffset * m_orbitSensitivity;
+        m_camera->SetRotation(rotation);
     }
 
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
-        float distanceOffset = yoffset * zoomSensitivity;
-        glm::vec3 position = camera->getPosition() + glm::vec3(0, 0, distanceOffset);
-        camera->setPosition(position);
+        float distanceOffset = yoffset * m_zoomSensitivity;
+        glm::vec3 position = m_camera->GetPosition() + glm::vec3(0, 0, distanceOffset);
+        m_camera->SetPosition(position);
     }
 }

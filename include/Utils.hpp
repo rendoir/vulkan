@@ -22,95 +22,100 @@
 	}																									\
 }
 
-struct Image {
-    VkImage image;
-    VkImageView view;
-    VkDeviceMemory memory;
+struct Image
+{
+    VkImage m_image = VK_NULL_HANDLE;
+    VkImageView m_view = VK_NULL_HANDLE;
+    VkDeviceMemory m_memory = VK_NULL_HANDLE;
 };
 
-struct Settings {
-    uint32_t width = 800;
-    uint32_t height = 600;
-    uint32_t maxFramesInFlight = 2;
-    bool validationLayers = true;
-    bool fullscreen = false;
-    bool vsync = false;
-    bool multiSampling = true;
-    VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
+struct Settings
+{
+    uint16_t m_width  = 800;
+    uint16_t m_height = 600;
+    uint16_t m_maxFramesInFlight = 2;
+    bool m_validationLayers = true;
+    bool m_fullscreen = false;
+    bool m_vsync = false;
+    bool m_multiSampling = true;
+    VkSampleCountFlagBits m_sampleCount = VK_SAMPLE_COUNT_1_BIT;
 
-    uint32_t brdflutSize = 512;
-    uint32_t prefilterSize = 512;
-    uint32_t irradianceSize = 64;
+    uint16_t m_brdflutSize    = 512;
+    uint16_t m_prefilterSize  = 512;
+    uint16_t m_irradianceSize = 64;
 
-    uint32_t prefilterSamples = 32;
-    float irradiancePhiSteps = 180.0f;
-    float irradianceThetaSteps = 64.0f;
+    uint16_t m_prefilterSamples  = 32;
+    float m_irradiancePhiSteps   = 180.0f;
+    float m_irradianceThetaSteps = 64.0f;
 };
 
-extern Settings settings;
+extern Settings g_settings;
 
-struct Buffer {
-	VkDevice device;
-	VkBuffer buffer = VK_NULL_HANDLE;
-	VkDeviceMemory memory = VK_NULL_HANDLE;
-	VkDescriptorBufferInfo descriptor;
-	int32_t count = 0;
-	void *mapped = nullptr;
+struct Buffer
+{
+	VkDevice m_device = VK_NULL_HANDLE;
+	VkBuffer m_buffer = VK_NULL_HANDLE;
+	VkDeviceMemory m_memory = VK_NULL_HANDLE;
+	VkDescriptorBufferInfo m_descriptor;
+	int32_t m_count = 0;
+	void* m_mapped = nullptr;
 };
 
-const std::vector<const char*> validationLayers = {
+std::vector<const char*> const g_validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 
-const std::vector<const char*> deviceExtensions = {
+std::vector<const char*> const g_deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
+struct QueueFamilyIndices
+{
+    std::optional<uint32_t> m_graphicsFamily;
+    std::optional<uint32_t> m_presentFamily;
 
-    bool isComplete() {
-        return graphicsFamily.has_value() && presentFamily.has_value();
-    }
+    bool IsComplete() const;
 };
 
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
+struct SwapChainSupportDetails
+{
+    VkSurfaceCapabilitiesKHR m_capabilities;
+    std::vector<VkSurfaceFormatKHR> m_formats;
+    std::vector<VkPresentModeKHR> m_presentModes;
 };
 
-struct UBOMatrices {
-    glm::mat4 projection;
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::vec3 camPos;
+struct UBOMatrices
+{
+    glm::mat4 m_projection;
+    glm::mat4 m_model;
+    glm::mat4 m_view;
+    glm::vec3 m_cameraPosition;
 };
 
-struct SkyboxMatrices {
-    glm::mat4 projection;
-    glm::mat4 model;
+struct SkyboxMatrices
+{
+    glm::mat4 m_projection;
+    glm::mat4 m_model;
 };
 
-struct PushConstBlockMaterial {
-    glm::vec4 baseColorFactor;
-    glm::vec4 emissiveFactor;
-    int colorTextureSet;
-    int physicalTextureSet;
-    int normalTextureSet;
-    int occlusionTextureSet;
-    int emissiveTextureSet;
-    float metallicFactor;
-    float roughnessFactor;
-    float alphaMask;
-    float alphaMaskCutoff;
+struct PushConstantBlockMaterial {
+    glm::vec4 m_baseColorFactor;
+    glm::vec4 m_emissiveFactor;
+    int m_colorTextureSet;
+    int m_physicalTextureSet;
+    int m_normalTextureSet;
+    int m_occlusionTextureSet;
+    int m_emissiveTextureSet;
+    float m_metallicFactor;
+    float m_roughnessFactor;
+    float m_alphaMask;
+    float m_alphaMaskCutoff;
 };
 
 struct Transform {
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 scale    = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 m_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 m_scale    = glm::vec3(1.0f, 1.0f, 1.0f);
 };
 
-std::vector<char> readFile(const std::string& filename);
+std::vector<char> ReadFile(std::string const& filename);

@@ -11,7 +11,8 @@
 #include <string>
 #include <vector>
 
-namespace tinygltf {
+namespace tinygltf 
+{
     struct Image;
     struct Model;
     struct Node;
@@ -19,212 +20,232 @@ namespace tinygltf {
 
 class Renderer;
 
-struct TextureSampler {
-    VkFilter magFilter;
-    VkFilter minFilter;
-    VkSamplerAddressMode addressModeU;
-    VkSamplerAddressMode addressModeV;
-    VkSamplerAddressMode addressModeW;
-
-    const static TextureSampler defaultSampler;
+struct TextureSampler
+{
+    VkFilter m_magFilter = VK_FILTER_LINEAR;
+    VkFilter m_minFilter = VK_FILTER_LINEAR;
+    VkSamplerAddressMode m_addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    VkSamplerAddressMode m_addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    VkSamplerAddressMode m_addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 };
 
-struct Texture {
-    Renderer *renderer;
+struct Texture2D
+{
+    Renderer* m_renderer;
 
-    VkImage image;
-    VkImageLayout imageLayout;
-    VkDeviceMemory deviceMemory;
-    VkImageView view;
-    uint32_t width, height;
-    uint32_t mipLevels;
-    uint32_t layerCount;
-    VkDescriptorImageInfo descriptor;
-    VkSampler sampler;
+    VkImage        m_image        = VK_NULL_HANDLE;
+    VkImageView    m_view         = VK_NULL_HANDLE;
+    VkSampler      m_sampler      = VK_NULL_HANDLE;
+    VkDeviceMemory m_deviceMemory = VK_NULL_HANDLE;
     
-    void fromglTfImage(tinygltf::Image &gltfimage, TextureSampler textureSampler, Renderer *renderer);
-    void fromFile(std::string filename, Renderer *renderer);
-    void createTextureImage(unsigned char* imageData, VkDeviceSize imageSize);
-    void createTextureImageView();
-    void createTextureSampler(TextureSampler textureSampler);
-    void destroy();
-};
+    VkImageLayout m_imageLayout;
+    VkDescriptorImageInfo m_descriptor;
 
-struct Texture3D {
-    Renderer *renderer;
-
-    VkImage image;
-    VkImageLayout imageLayout;
-    VkDeviceMemory deviceMemory;
-    VkImageView view;
-    uint32_t width, height;
-    uint32_t mipLevels;
-    uint32_t layerCount;
-    VkDescriptorImageInfo descriptor;
-    VkSampler sampler;
-    VkDeviceSize faceSize;
+    int16_t m_width;
+    int16_t m_height;
+    int16_t m_mipLevels;
     
-    void fromFolder(std::string folderName, Renderer *renderer);
-    void createTextureImage(float* imageData[]);
-    void createTextureImageView();
-    void createTextureSampler();
-    void destroy();
+    void FromglTfImage(tinygltf::Image const& gltfimage, TextureSampler const& textureSampler, Renderer* renderer);
+    void FromFile(std::string const filename, Renderer* renderer);
+    void CreateTextureImage(uint8_t const* const imageData, VkDeviceSize const& imageSize);
+    void CreateTextureImageView();
+    void CreateTextureSampler(TextureSampler const& textureSampler);
+    void Destroy();
 };
 
-struct Material {
-    enum AlphaMode { 
+struct Texture3D
+{
+    Renderer* m_renderer;
+
+    VkImage        m_image        = VK_NULL_HANDLE;
+    VkImageView    m_view         = VK_NULL_HANDLE;
+    VkSampler      m_sampler      = VK_NULL_HANDLE;
+    VkDeviceMemory m_deviceMemory = VK_NULL_HANDLE;
+    
+    VkDeviceSize  m_faceSize;
+    VkImageLayout m_imageLayout;
+    VkDescriptorImageInfo m_descriptor;
+
+    int16_t m_width;
+    int16_t m_height;
+    int16_t m_mipLevels;
+    
+    void FromFolder(std::string const folderName, Renderer* renderer);
+    void CreateTextureImage(float const* const imageData[]);
+    void CreateTextureImageView();
+    void CreateTextureSampler();
+    void Destroy();
+};
+
+struct Material
+{
+    enum AlphaMode
+    { 
         ALPHAMODE_OPAQUE,
         ALPHAMODE_MASK,
         ALPHAMODE_BLEND
     };
-    AlphaMode alphaMode = ALPHAMODE_OPAQUE;
-    float alphaCutoff = 1.0f;
     
-    float metallicFactor = 1.0f;
-    float roughnessFactor = 1.0f;
-    glm::vec4 baseColorFactor = glm::vec4(1.0f);
-    glm::vec4 emissiveFactor = glm::vec4(1.0f);
+    float m_metallicFactor  = 1.0f;
+    float m_roughnessFactor = 1.0f;
+    glm::vec4 m_baseColorFactor = glm::vec4(1.0f);
+    glm::vec4 m_emissiveFactor  = glm::vec4(1.0f);
     
-    Texture *baseColorTexture;
-    Texture *metallicRoughnessTexture;
-    Texture *normalTexture;
-    Texture *occlusionTexture;
-    Texture *emissiveTexture;
+    Texture2D* m_baseColorTexture         = nullptr;
+    Texture2D* m_metallicRoughnessTexture = nullptr;
+    Texture2D* m_normalTexture            = nullptr;
+    Texture2D* m_occlusionTexture         = nullptr;
+    Texture2D* m_emissiveTexture          = nullptr;
 
-    uint8_t baseColorTextCoordSet = 0;
-    uint8_t metallicRoughnessTextCoordSet = 0;
-    uint8_t normalTextCoordSet = 0;
-    uint8_t occlusionTextCoordSet = 0;
-    uint8_t emissiveTextCoordSet = 0;
+    uint8_t m_baseColorTextCoordSet         = 0;
+    uint8_t m_metallicRoughnessTextCoordSet = 0;
+    uint8_t m_normalTextCoordSet            = 0;
+    uint8_t m_occlusionTextCoordSet         = 0;
+    uint8_t m_emissiveTextCoordSet          = 0;
 
-    VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+    AlphaMode m_alphaMode = ALPHAMODE_OPAQUE;
+    float m_alphaCutoff = 1.0f;
+
+    VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
 };
 
-struct BoundingBox {
-    glm::vec3 min;
-    glm::vec3 max;
-    bool valid = false;
+struct BoundingBox
+{
+    glm::vec3 m_min;
+    glm::vec3 m_max;
+    bool m_valid = false;
 
-    BoundingBox();
-    BoundingBox(glm::vec3 min, glm::vec3 max);
-    BoundingBox getAABB(glm::mat4 m);
+    BoundingBox() {}
+    BoundingBox(glm::vec3 const& min, glm::vec3 const& max) : m_min(min), m_max(max) {}
+    BoundingBox FromMatrix(glm::mat4 const& matrix);
 };
 
-struct Primitive {
-    uint32_t firstIndex;
-    uint32_t indexCount;
-    uint32_t vertexCount;
-    Material &material;
-    bool hasIndices;
-    BoundingBox bb;
+struct Primitive
+{
+    uint32_t m_firstIndex  = 0;
+    uint32_t m_indexCount  = 0;
+    uint32_t m_vertexCount = 0;
+    bool m_hasIndices = false;
+    Material* m_material;
+    BoundingBox m_boundingBox;
 
-    Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material &material);
-    void setBoundingBox(glm::vec3 min, glm::vec3 max);
+    Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material* material);
+    
+    void SetBoundingBox(glm::vec3 const& min, glm::vec3 const& max);
 };
 
-struct Mesh {
-    Renderer *renderer;
+struct Mesh
+{
+    Renderer* m_renderer;
 
-    std::vector<Primitive*> primitives;
-
-    BoundingBox bb;
-    BoundingBox aabb;
+    BoundingBox m_boundingBox;
+    BoundingBox m_boundingBox2;
 
     // TODO - Should be per frame
-    struct UniformBuffer {
-        VkBuffer buffer;
-        VkDeviceMemory memory;
-        VkDescriptorBufferInfo descriptor;
-        VkDescriptorSet descriptorSet;
-        void *mapped;
-    } uniformBuffer;
+    struct UniformBuffer
+    {
+        VkBuffer        m_buffer        = VK_NULL_HANDLE;
+        VkDeviceMemory  m_memory        = VK_NULL_HANDLE;
+        VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
+        VkDescriptorBufferInfo m_descriptor;
+        void* m_mapped;
+    } m_uniformBuffer;
 
-    struct UniformBlock {
-        glm::mat4 matrix;
-    } uniformBlock;
+    struct UniformBlock
+    {
+        glm::mat4 m_matrix;
+    } m_uniformBlock;
 
-    Mesh(Renderer *renderer, glm::mat4 matrix);
+    std::vector<Primitive*> m_primitives;
+
+    Mesh(Renderer* renderer, glm::mat4 const& matrix);
     ~Mesh();
 
-    void setBoundingBox(glm::vec3 min, glm::vec3 max);
+    void SetBoundingBox(glm::vec3 const& min, glm::vec3 const& max);
 };
 
-struct Node {
-    Node *parent;
-    uint32_t index;
-    std::vector<Node*> children;
-    glm::mat4 matrix;
-    std::string name;
-    Mesh *mesh;
-    glm::vec3 translation{};
-    glm::vec3 scale{ 1.0f };
-    glm::quat rotation{};
-    BoundingBox bvh;
-    BoundingBox aabb;
+struct Node
+{
+    Node* m_parent;
+    Mesh* m_mesh;
+    uint32_t m_index;
 
-    glm::mat4 localMatrix();
-    glm::mat4 getMatrix();
-    void update();
+    glm::vec3 m_translation = glm::vec3(0.0f);
+    glm::vec3 m_scale       = glm::vec3(1.0f);
+    glm::quat m_rotation    = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 m_matrix;
+
+    BoundingBox m_boundingBox;
+    BoundingBox m_boundingBox2;
+
+    std::vector<Node*> m_children;
+
+    glm::mat4 GetLocalMatrix();
+    glm::mat4 GetWorldMatrix();
+    void Update();
+
     ~Node();
 };
 
-struct Model {
-    Renderer *renderer;
+struct Model
+{
+    Renderer* m_renderer;
 
-    struct Vertex {
-        glm::vec3 position;
-        glm::vec3 normal;
-        glm::vec2 uv0;
-        glm::vec2 uv1;
+    struct Vertex
+    {
+        glm::vec3 m_position;
+        glm::vec3 m_normal;
+        glm::vec2 m_uvSet0;
+        glm::vec2 m_uvSet1;
 
-        static VkVertexInputBindingDescription getBindingDescription();
-        static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions();
+        static VkVertexInputBindingDescription GetBindingDescription();
+        static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions();
     };
 
-    struct Vertices {
-        VkBuffer buffer = VK_NULL_HANDLE;
-        VkDeviceMemory memory;
-    } vertices;
+    struct Vertices
+    {
+        VkBuffer       m_buffer = VK_NULL_HANDLE;
+        VkDeviceMemory m_memory = VK_NULL_HANDLE;
+    } m_vertices;
 
-    struct Indices {
-        int count;
-        VkBuffer buffer = VK_NULL_HANDLE;
-        VkDeviceMemory memory;
-    } indices;
+    struct Indices
+    {
+        uint32_t m_count;
 
-    glm::mat4 aabb;
+        VkBuffer       m_buffer = VK_NULL_HANDLE;
+        VkDeviceMemory m_memory = VK_NULL_HANDLE;
+    } m_indices;
 
-    std::vector<Node*> nodes;
-    std::vector<Node*> linearNodes;
+    glm::mat4 m_boundingBox;
 
-    std::vector<Texture> textures;
-    std::vector<TextureSampler> textureSamplers;
-    std::vector<Material> materials;
+    std::vector<Node*> m_nodes;
+    std::vector<Node*> m_linearNodes;
+
+    std::vector<Texture2D> m_textures;
+    std::vector<TextureSampler> m_textureSamplers;
+    std::vector<Material> m_materials;
 
     struct Dimensions {
-        glm::vec3 min = glm::vec3(FLT_MAX);
-        glm::vec3 max = glm::vec3(-FLT_MAX);
-    } dimensions;
+        glm::vec3 m_min = glm::vec3(FLT_MAX);
+        glm::vec3 m_max = glm::vec3(-FLT_MAX);
+    } m_dimensions;
 
-    void loadFromFile(std::string filename, Renderer *renderer, float scale = 1.0f);
-    void destroy();
+    void LoadFromFile(std::string const filename, Renderer* renderer);
+    void Destroy();
 
-    void loadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeIndex, const tinygltf::Model &model, std::vector<uint32_t>& indexBuffer, std::vector<Vertex>& vertexBuffer, float globalscale);
-    void loadTextures(tinygltf::Model &gltfModel, Renderer *renderer);
-    void loadMaterials(tinygltf::Model &gltfModel);
-    void loadTextureSamplers(tinygltf::Model &gltfModel);
+    void LoadNode(Node* parent, tinygltf::Node const& node, uint32_t nodeIndex, tinygltf::Model const& model, std::vector<uint32_t>& indexBuffer, std::vector<Vertex>& vertexBuffer);
+    void LoadTextures(tinygltf::Model& gltfModel, Renderer* renderer);
+    void LoadMaterials(tinygltf::Model& gltfModel);
+    void LoadTextureSamplers(tinygltf::Model const& gltfModel);
 
-    void drawNode(Node *node, VkCommandBuffer commandBuffer);
-    void draw(VkCommandBuffer commandBuffer);
+    void DrawNode(Node const* node, VkCommandBuffer commandBuffer);
+    void Draw(VkCommandBuffer commandBuffer);
 
-    void calculateBoundingBox(Node *node, Node *parent);
-    void getSceneDimensions();
-    VkSamplerAddressMode getVkWrapMode(int32_t wrapMode);
-    VkFilter getVkFilterMode(int32_t filterMode);
+    void CalculateBoundingBox(Node* node, Node const* parent);
+    void GetSceneDimensions();
+    VkSamplerAddressMode GetVkWrapMode(int32_t wrapMode);
+    VkFilter GetVkFilterMode(int32_t filterMode);
 
-    Node* findNode(Node *parent, uint32_t index);
-    Node* nodeFromIndex(uint32_t index);
-
-    void createVertexBuffer(std::vector<Vertex> vertices);
-    void createIndexBuffer(std::vector<uint32_t> indices);
+    void CreateVertexBuffer(std::vector<Vertex> const& vertices);
+    void CreateIndexBuffer(std::vector<uint32_t> const& indices);
 };
