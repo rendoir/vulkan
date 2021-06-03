@@ -45,15 +45,15 @@ The specular term also requires the pre-computation of two maps: a BRDF Lookup t
 ### Getting started
 Clone the repository
 ```sh
-git clone https://github.com/rendoir/vulkan.git
+git clone --recursive https://github.com/rendoir/vulkan.git
+```
+Configure the project
+```sh
+cmake -S . -B _build_
 ```
 Build the project
 ```sh
-make
-```
-Run the application
-```sh
-./run
+cmake --build _build_
 ```
 
 ### Acknowledgements

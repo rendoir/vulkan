@@ -3,12 +3,6 @@
 #include "Camera.hpp"
 #include "Skybox.hpp"
 
-#include <array>
-#include <chrono>
-#include <cstring>
-#include <iostream>
-#include <set>
-#include <stdexcept>
 
 Renderer::Renderer() {
     InitWindow();
@@ -167,7 +161,7 @@ void Renderer::CreateInstance() {
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "Roar";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_2;
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -573,8 +567,8 @@ void Renderer::CreateFramebuffers() {
 }
 
 void Renderer::CreatePipeline() {
-    auto vertShaderCode = ReadFile("build/shaders/pbr.vs.spv");
-    auto fragShaderCode = ReadFile("build/shaders/pbr.fs.spv");
+    auto vertShaderCode = ReadFile("shaders/_spirv_/pbr.vert.spv");
+    auto fragShaderCode = ReadFile("shaders/_spirv_/pbr.frag.spv");
 
     VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCode);
@@ -2126,8 +2120,8 @@ void Renderer::GenerateBRDFLUT() {
     pipelineCI.pStages = shaderStages.data();
 
     // Shaders
-    auto vertShaderCode = ReadFile("build/shaders/brdflut.vs.spv");
-    auto fragShaderCode = ReadFile("build/shaders/brdflut.fs.spv");
+    auto vertShaderCode = ReadFile("shaders/_spirv_/brdflut.vert.spv");
+    auto fragShaderCode = ReadFile("shaders/_spirv_/brdflut.frag.spv");
 
     VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCode);
@@ -2544,7 +2538,7 @@ void Renderer::GenerateCubemaps()
         pipelineCI.pStages = shaderStages.data();
         pipelineCI.renderPass = renderpass;
 
-        auto vertShaderCode = ReadFile("build/shaders/filterCube.vs.spv");
+        auto vertShaderCode = ReadFile("shaders/_spirv_/filterCube.vert.spv");
         VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -2560,12 +2554,12 @@ void Renderer::GenerateCubemaps()
 
         switch (target) {
             case IRRADIANCE: {
-                auto fragShaderCode = ReadFile("build/shaders/irradianceCube.fs.spv");
+                auto fragShaderCode = ReadFile("shaders/_spirv_/irradianceCube.frag.spv");
                 fragShaderStageInfo.module = CreateShaderModule(fragShaderCode);
                 break;
             }
             case PREFILTEREDENV: {
-                auto fragShaderCode = ReadFile("build/shaders/prefilterCube.fs.spv");
+                auto fragShaderCode = ReadFile("shaders/_spirv_/prefilterCube.frag.spv");
                 fragShaderStageInfo.module = CreateShaderModule(fragShaderCode);
                 break;
             }   

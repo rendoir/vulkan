@@ -1,6 +1,5 @@
 #include "Utils.hpp"
 
-#include <fstream>
 
 Settings g_settings;
 

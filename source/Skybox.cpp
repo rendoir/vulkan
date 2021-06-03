@@ -4,8 +4,6 @@
 #include "Camera.hpp"
 #include "Utils.hpp"
 
-#include <iostream>
-
 
 Skybox::Skybox(Renderer* renderer, Texture3D* texture) {
     m_model = renderer->m_cube;
@@ -134,8 +132,8 @@ void Skybox::CreateDescriptors() {
 }
 
 void Skybox::CreatePipeline() {
-    auto vertShaderCode = ReadFile("build/shaders/skybox.vs.spv");
-    auto fragShaderCode = ReadFile("build/shaders/skybox.fs.spv");
+    auto vertShaderCode = ReadFile("shaders/_spirv_/skybox.vert.spv");
+    auto fragShaderCode = ReadFile("shaders/_spirv_/skybox.frag.spv");
 
     VkShaderModule vertShaderModule = m_renderer->CreateShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = m_renderer->CreateShaderModule(fragShaderCode);

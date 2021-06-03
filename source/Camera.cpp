@@ -15,11 +15,11 @@ void Camera::SetRotation(glm::vec3 rotation) {
     UpdateViewMatrix();
 }
 
-void Camera::SetPerspective(float fov, float aspectRatio, float near, float far) {
+void Camera::SetPerspective(float fov, float aspectRatio, float nearPlane, float farPlane) {
     this->m_fov = fov;
     this->m_aspectRatio = aspectRatio;
-    this->m_near = near;
-    this->m_far = far;
+    this->m_near = nearPlane;
+    this->m_far = farPlane;
     UpdateProjectionMatrix();
 }
 

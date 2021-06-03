@@ -1,7 +1,4 @@
 #include "Renderer.hpp"
-#include "Utils.hpp"
-
-#include <iostream>
 
 int main() {
     Renderer app;

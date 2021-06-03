@@ -1,13 +1,6 @@
 #include "Model.hpp"
 #include "Renderer.hpp"
 
-#define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define STB_IMAGE_IMPLEMENTATION
-#include <glTF/tiny_gltf.h>
-
-#include <iostream>
-
 
 BoundingBox BoundingBox::FromMatrix(glm::mat4 const& matrix) {
     glm::vec3 min = glm::vec3(matrix[3]);
