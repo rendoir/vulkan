@@ -1,13 +1,13 @@
 #pragma once
 
 
-#define VK_CHECK_RESULT(f)																				\
+#define VK_CHECK_RESULT(returnValue)																				\
 {																										\
-	VkResult res = (f);																					\
-	if (res != VK_SUCCESS)																				\
+	VkResult const result = (returnValue);																					\
+	if (result != VK_SUCCESS)																				\
 	{																									\
-		std::cout << "Fatal : VkResult is \"" << res << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
-		assert(res == VK_SUCCESS);																		\
+		std::cout << "Fatal : VkResult is \"" << result << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+		assert(result == VK_SUCCESS);																		\
 	}																									\
 }
 
@@ -50,11 +50,11 @@ struct Buffer
 	void* m_mapped = nullptr;
 };
 
-std::vector<const char*> const g_validationLayers = {
+std::vector<char const*> const g_validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 
-std::vector<const char*> const g_deviceExtensions = {
+std::vector<char const*> const g_deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
@@ -87,7 +87,8 @@ struct SkyboxMatrices
     glm::mat4 m_model;
 };
 
-struct PushConstantBlockMaterial {
+struct PushConstantBlockMaterial
+{
     glm::vec4 m_baseColorFactor;
     glm::vec4 m_emissiveFactor;
     int m_colorTextureSet;
@@ -101,10 +102,14 @@ struct PushConstantBlockMaterial {
     float m_alphaMaskCutoff;
 };
 
-struct Transform {
+struct Transform
+{
     glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 m_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 m_scale    = glm::vec3(1.0f, 1.0f, 1.0f);
 };
 
-std::vector<char> ReadFile(std::string const& filename);
+namespace Utils
+{
+	std::string ReadFile(std::string const& filename);
+}

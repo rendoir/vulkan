@@ -9,8 +9,6 @@ class Renderer;
 class Skybox
 {
 public:
-    Renderer* m_renderer;
-
     Model* m_model = nullptr;
     Texture3D* m_textureCube = nullptr;
 
@@ -26,7 +24,8 @@ public:
 
     SkyboxMatrices m_uboMatrices;
     
-    struct Vertex {
+    struct Vertex
+    {
         glm::vec3 m_position;
 
         static VkVertexInputBindingDescription GetBindingDescription();
@@ -34,7 +33,7 @@ public:
     };
 
 public:
-    Skybox(Renderer* renderer, Texture3D* texture);
+    Skybox(Texture3D* texture);
     ~Skybox();
 
     void CreateUniformBuffers();

@@ -1,13 +1,5 @@
 #pragma once
 
-
-namespace tinygltf 
-{
-    struct Image;
-    struct Model;
-    struct Node;
-}
-
 class Renderer;
 
 struct TextureSampler
@@ -21,8 +13,6 @@ struct TextureSampler
 
 struct Texture2D
 {
-    Renderer* m_renderer;
-
     VkImage        m_image        = VK_NULL_HANDLE;
     VkImageView    m_view         = VK_NULL_HANDLE;
     VkSampler      m_sampler      = VK_NULL_HANDLE;
@@ -35,8 +25,8 @@ struct Texture2D
     int16_t m_height;
     int16_t m_mipLevels;
     
-    void FromglTfImage(tinygltf::Image const& gltfimage, TextureSampler const& textureSampler, Renderer* renderer);
-    void FromFile(std::string const filename, Renderer* renderer);
+    void FromglTfImage(tinygltf::Image const& gltfimage, TextureSampler const& textureSampler);
+    void FromFile(std::string const filename);
     void CreateTextureImage(uint8_t const* const imageData, VkDeviceSize const& imageSize);
     void CreateTextureImageView();
     void CreateTextureSampler(TextureSampler const& textureSampler);
@@ -45,8 +35,6 @@ struct Texture2D
 
 struct Texture3D
 {
-    Renderer* m_renderer;
-
     VkImage        m_image        = VK_NULL_HANDLE;
     VkImageView    m_view         = VK_NULL_HANDLE;
     VkSampler      m_sampler      = VK_NULL_HANDLE;
@@ -60,7 +48,7 @@ struct Texture3D
     int16_t m_height;
     int16_t m_mipLevels;
     
-    void FromFolder(std::string const folderName, Renderer* renderer);
+    void FromFolder(std::string const folderName);
     void CreateTextureImage(float const* const imageData[]);
     void CreateTextureImageView();
     void CreateTextureSampler();
@@ -126,8 +114,6 @@ struct Primitive
 
 struct Mesh
 {
-    Renderer* m_renderer;
-
     BoundingBox m_boundingBox;
     BoundingBox m_boundingBox2;
 
@@ -148,7 +134,7 @@ struct Mesh
 
     std::vector<Primitive*> m_primitives;
 
-    Mesh(Renderer* renderer, glm::mat4 const& matrix);
+    Mesh(glm::mat4 const& matrix);
     ~Mesh();
 
     void SetBoundingBox(glm::vec3 const& min, glm::vec3 const& max);
@@ -166,7 +152,7 @@ struct Node
     glm::mat4 m_matrix;
 
     BoundingBox m_boundingBox;
-    BoundingBox m_boundingBox2;
+    BoundingBox m_boundingBox2; // TODO: Remove
 
     std::vector<Node*> m_children;
 
@@ -179,8 +165,6 @@ struct Node
 
 struct Model
 {
-    Renderer* m_renderer;
-
     struct Vertex
     {
         glm::vec3 m_position;
@@ -215,16 +199,17 @@ struct Model
     std::vector<TextureSampler> m_textureSamplers;
     std::vector<Material> m_materials;
 
-    struct Dimensions {
+    struct Dimensions
+    {
         glm::vec3 m_min = glm::vec3(FLT_MAX);
         glm::vec3 m_max = glm::vec3(-FLT_MAX);
     } m_dimensions;
 
-    void LoadFromFile(std::string const filename, Renderer* renderer);
+    void LoadFromFile(std::string const filename);
     void Destroy();
 
-    void LoadNode(Node* parent, tinygltf::Node const& node, uint32_t nodeIndex, tinygltf::Model const& model, std::vector<uint32_t>& indexBuffer, std::vector<Vertex>& vertexBuffer);
-    void LoadTextures(tinygltf::Model& gltfModel, Renderer* renderer);
+    void LoadNode(Node* parent, tinygltf::Node const& node, uint32_t const nodeIndex, tinygltf::Model const& model, std::vector<uint32_t>& indexBuffer, std::vector<Vertex>& vertexBuffer);
+    void LoadTextures(tinygltf::Model const& gltfModel);
     void LoadMaterials(tinygltf::Model& gltfModel);
     void LoadTextureSamplers(tinygltf::Model const& gltfModel);
 
@@ -233,8 +218,8 @@ struct Model
 
     void CalculateBoundingBox(Node* node, Node const* parent);
     void GetSceneDimensions();
-    VkSamplerAddressMode GetVkWrapMode(int32_t wrapMode);
-    VkFilter GetVkFilterMode(int32_t filterMode);
+    VkSamplerAddressMode GetVkWrapMode(int32_t const wrapMode);
+    VkFilter GetVkFilterMode(int32_t const filterMode);
 
     void CreateVertexBuffer(std::vector<Vertex> const& vertices);
     void CreateIndexBuffer(std::vector<uint32_t> const& indices);

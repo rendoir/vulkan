@@ -13,10 +13,14 @@ class CameraControl;
 class Renderer
 {
 public:
-    Renderer();
-    ~Renderer();
+	static Renderer& GetInstance();
 
-    void Run();
+    void Init();
+	void Run();
+
+private:
+	Renderer();
+	~Renderer();
 
 public:
     GLFWwindow*  m_window = nullptr;
@@ -110,7 +114,7 @@ private:
     void InitSkybox();
 
     void RenderFrame();
-    void RenderNode(Node *node, int16_t cbIndex);
+    void RenderNode(Node const* node, int16_t const cbIndex);
 
     void HandleInputs();
     
@@ -125,40 +129,45 @@ private:
 
     bool CheckValidationLayerSupport();
     std::vector<char const*> GetRequiredExtensions();
-    bool IsDeviceSuitable(VkPhysicalDevice device);
-    bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
-    bool HasStencilComponent(VkFormat format);
-    SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
-    QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+    bool IsDeviceSuitable(VkPhysicalDevice const device);
+    bool CheckDeviceExtensionSupport(VkPhysicalDevice const device);
+    bool HasStencilComponent(VkFormat const format);
+    SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice const device);
+    QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice const device);
     VkSampleCountFlagBits GetMaxUsableSampleCount();
-    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-    VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(std::vector<VkSurfaceFormatKHR> const& availableFormats);
+    VkPresentModeKHR ChooseSwapPresentMode(std::vector<VkPresentModeKHR> const& availablePresentModes);
+    VkExtent2D ChooseSwapExtent(VkSurfaceCapabilitiesKHR const& capabilities);
+    VkFormat FindSupportedFormat(std::vector<VkFormat> const& candidates, VkImageTiling const tiling, VkFormatFeatureFlags const features);
     VkFormat FindDepthFormat();
-    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    uint32_t FindMemoryType(uint32_t const typeFilter, VkMemoryPropertyFlags const properties);
     void UpdateCameraAspectRatio();
 
     VkCommandBuffer BeginSingleTimeCommands();
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void* pUserData);
     static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
     static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-    VkResult CreateDebugUtilsMessengerEXT(const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo);
+    VkResult CreateDebugUtilsMessengerEXT(VkDebugUtilsMessengerCreateInfoEXT const* pCreateInfo);
     void DestroyDebugUtilsMessengerEXT();
 
 public:
-    VkShaderModule CreateShaderModule(const std::vector<char>& code);
-    void CreateImage(uint16_t width, uint16_t height, uint16_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-    void CreateImageCube(uint16_t width, uint16_t height, uint16_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint16_t mipLevels);
-    VkImageView CreateImageViewCube(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint16_t mipLevels);
-    void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint16_t mipLevels, uint16_t layers = 1);
-    void CopyBufferToImage(VkBuffer buffer, VkImage image, uint16_t width, uint16_t height);
-    void CopyBufferToImageCube(VkBuffer buffer, VkImage image, uint16_t width, uint16_t height, uint16_t mipLevels, VkDeviceSize faceOffset);
-    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    void GenerateMipmaps(VkImage image, VkFormat imageFormat, uint16_t texWidth, uint16_t texHeight, uint16_t mipLevels);
-    void GenerateMipmapsCube(VkImage image, VkFormat imageFormat, uint16_t texWidth, uint16_t texHeight, uint16_t mipLevels);
-    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    VkShaderModule CreateShaderModule(std::string const& code);
+    void CreateImage(uint16_t const width, uint16_t const height, uint16_t const mipLevels, VkSampleCountFlagBits const numSamples, VkFormat const format, VkImageTiling const tiling, VkImageUsageFlags const usage, VkMemoryPropertyFlags const properties, VkImage& image, VkDeviceMemory& imageMemory);
+    void CreateImageCube(uint16_t const width, uint16_t const height, uint16_t const mipLevels, VkSampleCountFlagBits const numSamples, VkFormat const format, VkImageTiling const tiling, VkImageUsageFlags const usage, VkMemoryPropertyFlags const properties, VkImage& image, VkDeviceMemory& imageMemory);
+    VkImageView CreateImageView(VkImage const image, VkFormat const format, VkImageAspectFlags const aspectFlags, uint16_t const mipLevels);
+    VkImageView CreateImageViewCube(VkImage const image, VkFormat const format, VkImageAspectFlags const aspectFlags, uint16_t const mipLevels);
+    void TransitionImageLayout(VkImage image, VkFormat const format, VkImageLayout const oldLayout, VkImageLayout const newLayout, uint16_t const mipLevels, uint16_t const layers = 1);
+    void CopyBufferToImage(VkBuffer const buffer, VkImage image, uint16_t const width, uint16_t const height);
+    void CopyBufferToImageCube(VkBuffer const buffer, VkImage image, uint16_t const width, uint16_t const height, uint16_t const mipLevels, VkDeviceSize const faceOffset);
+    void CreateBuffer(VkDeviceSize const size, VkBufferUsageFlags const usage, VkMemoryPropertyFlags const properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void GenerateMipmaps(VkImage image, VkFormat const imageFormat, uint16_t const texWidth, uint16_t const texHeight, uint16_t const mipLevels);
+    void GenerateMipmapsCube(VkImage image, VkFormat const imageFormat, uint16_t const texWidth, uint16_t const texHeight, uint16_t const mipLevels);
+    void CopyBuffer(VkBuffer const srcBuffer, VkBuffer dstBuffer, VkDeviceSize const size);
+
+	Renderer(Renderer const&) = delete;
+	Renderer(Renderer&&) = delete;
+	Renderer& operator=(Renderer const&) = delete;
+	Renderer& operator=(Renderer&&) = delete;
 };

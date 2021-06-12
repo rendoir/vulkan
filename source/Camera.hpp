@@ -8,10 +8,10 @@ class Camera
 public:
     Camera();
 
-    void SetPosition(glm::vec3 position);
-    void SetRotation(glm::vec3 rotation);
-    void SetPerspective(float fov, float aspectRatio, float nearPlane, float farPlane);
-    void SetAspectRatio(float aspectRatio);
+    void SetPosition(glm::vec3 const position);
+    void SetRotation(glm::vec3 const rotation);
+    void SetPerspective(float const fov, float const aspectRatio, float const nearPlane, float const farPlane);
+    void SetAspectRatio(float const aspectRatio);
 
     glm::mat4 inline GetView()          const { return m_view; };
     glm::mat4 inline GetProjection()    const { return m_projection; };
@@ -42,7 +42,6 @@ class CameraControl
 {
 public:
     CameraControl(Camera* camera);
-    virtual ~CameraControl();
 
     virtual void HandleInput(GLFWwindow* window) = 0;
 
