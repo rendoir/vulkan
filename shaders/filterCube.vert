@@ -1,12 +1,12 @@
 #version 450
 
-layout (location = 0) in vec3 inPos;
+layout (location = 0) in vec3 i_position;
 
-layout(push_constant) uniform PushConsts {
+layout(push_constant) uniform Transformation {
 	layout (offset = 0) mat4 mvp;
-} pushConsts;
+} pc_transformation;
 
-layout (location = 0) out vec3 outUVW;
+layout (location = 0) out vec3 o_uvw;
 
 out gl_PerVertex {
 	vec4 gl_Position;
@@ -14,6 +14,6 @@ out gl_PerVertex {
 
 void main() 
 {
-	outUVW = inPos;
-	gl_Position = pushConsts.mvp * vec4(inPos.xyz, 1.0);
+	o_uvw = i_position;
+	gl_Position = pc_transformation.mvp * vec4(i_position.xyz, 1.0);
 }

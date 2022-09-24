@@ -1,5 +1,5 @@
 .vscode
 .vs
 
-_build_/
-_spirv_/
+.build/
+.spirv/

@@ -1,10 +1,10 @@
 #version 450
 
-layout (location = 0) in vec2 inUV;
-layout (location = 0) out vec4 outColor;
-layout (constant_id = 0) const uint NUM_SAMPLES = 1024u;
+layout (location = 0) in vec2 i_uv;
+layout (location = 0) out vec4 o_color;
+layout (constant_id = 0) const uint c_nrSamples = 1024u;
 
-const float PI = 3.1415926536;
+#include "Common/Constants.glsl"
 
 // Hammersley sequence
 vec2 Hammersley(uint i, uint N) 
@@ -15,7 +15,7 @@ vec2 Hammersley(uint i, uint N)
 	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
 	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
 	float rdi = float(bits) * 2.3283064365386963e-10; // 0x100000000
-	return vec2(float(i) /float(N), rdi);
+	return vec2(float(i)/float(N), rdi);
 }
 
 // Importance sampling GGX
@@ -55,8 +55,8 @@ vec2 IntegrateBRDF(float dotNV, float roughness)
 	// For each sample, generates a sample vector that's biased
 	// towards the preferred alignment direction (importance sampling)
 	vec2 LUT = vec2(0.0);
-	for(uint i = 0u; i < NUM_SAMPLES; i++) {
-		vec2 Xi = Hammersley(i, NUM_SAMPLES);
+	for(uint i = 0u; i < c_nrSamples; i++) {
+		vec2 Xi = Hammersley(i, c_nrSamples);
 		vec3 H = ImportanceSampleGGX(Xi, roughness, N);
 		vec3 L = 2.0 * dot(V, H) * H - V;
 
@@ -71,10 +71,10 @@ vec2 IntegrateBRDF(float dotNV, float roughness)
 			LUT += vec2((1.0 - Fc) * G_Vis, Fc * G_Vis);
 		}
 	}
-	return LUT / float(NUM_SAMPLES);
+	return LUT / float(c_nrSamples);
 }
 
 void main() 
 {
-	outColor = vec4(IntegrateBRDF(inUV.s, 1.0-inUV.t), 0.0, 1.0);
+	o_color = vec4(IntegrateBRDF(i_uv.s, 1.0-i_uv.t), 0.0, 1.0);
 }

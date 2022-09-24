@@ -1,38 +1,34 @@
 #version 450
 
-layout (location = 0) in vec3 inPos;
-layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec2 inUV0;
-layout (location = 3) in vec2 inUV1;
+layout (location = 0) in vec3 i_position;
+layout (location = 1) in vec3 i_normal;
+layout (location = 2) in vec2 i_uv0;
+layout (location = 3) in vec2 i_uv1;
 
-layout (set = 0, binding = 0) uniform UBO
+// Camera set
+layout (set = 0, binding = 0) uniform Camera
 {
 	mat4 projection;
-	mat4 model;
 	mat4 view;
-	vec3 camPos;
-} ubo;
+	vec3 position;
+} u_camera;
 
-layout (set = 2, binding = 0) uniform UBONode {
-	mat4 matrix;
-} node;
-
-layout (location = 0) out vec3 outWorldPos;
-layout (location = 1) out vec3 outNormal;
-layout (location = 2) out vec2 outUV0;
-layout (location = 3) out vec2 outUV1;
-
-out gl_PerVertex
+// Transform set
+layout (set = 1, binding = 0) uniform Transform
 {
-	vec4 gl_Position;
-};
+	mat4 model;
+} u_transform;
+
+layout (location = 0) out vec3 o_worldPosition;
+layout (location = 1) out vec3 o_normal;
+layout (location = 2) out vec2 o_uv0;
+layout (location = 3) out vec2 o_uv1;
 
 void main() 
 {
-	vec4 locPos = ubo.model * node.matrix * vec4(inPos, 1.0);
-    outNormal = normalize(transpose(inverse(mat3(ubo.model * node.matrix))) * inNormal);
-	outWorldPos = locPos.xyz / locPos.w;
-	outUV0 = inUV0;
-	outUV1 = inUV1;
-	gl_Position =  ubo.projection * ubo.view * vec4(outWorldPos, 1.0);
+	o_worldPosition = vec3(u_transform.model * vec4(i_position, 1.0));
+    o_normal = normalize(transpose(inverse(mat3(u_transform.model))) * i_normal);
+	o_uv0 = i_uv0;
+	o_uv1 = i_uv1;
+	gl_Position =  u_camera.projection * u_camera.view * vec4(o_worldPosition, 1.0);
 }

@@ -1,42 +1,22 @@
 #version 450
 
-layout (binding = 1) uniform samplerCube samplerEnv;
+layout (location = 0) in vec3 i_uvw;
 
-layout (set = 0, location = 0) in vec3 inUVW;
+layout (set = 1, binding = 2) uniform samplerCube u_skyboxCube;
 
-layout (set = 0, location = 0) out vec4 outColor;
+layout (location = 0) out vec4 o_color;
 
 // Constants
-const float exposure = 4.5;
-const float gamma = 2.2;
+layout (constant_id = 0) const float c_gamma = 2.2;
+layout (constant_id = 1) const float c_exposure = 4.5;
 
-// Uncharted2 Tonemapping
-vec3 Uncharted2Tonemap(vec3 x) {
-	float A = 0.15;
-	float B = 0.50;
-	float C = 0.10;
-	float D = 0.20;
-	float E = 0.02;
-	float F = 0.30;
-	float W = 11.2;
-
-	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
-}
-
-vec3 applyHDRTonemapping(in vec3 color) {
-	float W = 11.2;
-
-	vec3 current = Uncharted2Tonemap(color * exposure);
-	vec3 whiteScale = 1.0f / Uncharted2Tonemap(vec3(W));
-
-	return current * whiteScale;
-}
-
-vec3 linearTosRGB(vec3 linearIn) {
-	return pow(linearIn, vec3(1.0 / gamma));
-}
+#include "Common/ColorSpace.glsl"
 
 void main() 
 {
-	outColor = vec4(linearTosRGB(applyHDRTonemapping(textureLod(samplerEnv, inUVW, 1.5).rgb)), 1.0);
+	vec3 color = textureLod(u_skyboxCube, i_uvw, 1.5).rgb;
+	ApplyHDRTonemapping(color);
+	ApplyGammaCorrection(color);
+
+	o_color = vec4(color, 1.0);
 }

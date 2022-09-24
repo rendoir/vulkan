@@ -1,3 +1,6 @@
+[submodule "external/boost.preprocessor"]
+	path = external/boost.preprocessor
+	url = https://github.com/boostorg/preprocessor.git
 [submodule "external/glfw"]
 	path = external/glfw
 	url = https://github.com/glfw/glfw.git
@@ -34,3 +37,9 @@
 [submodule "external/Vulkan-ValidationLayers"]
 	path = external/Vulkan-ValidationLayers
 	url = https://github.com/KhronosGroup/Vulkan-ValidationLayers.git
+[submodule "external/VulkanMemoryAllocator"]
+	path = external/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "external/entt"]
+	path = external/entt
+	url = https://github.com/skypjack/entt.git

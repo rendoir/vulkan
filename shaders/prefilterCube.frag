@@ -1,19 +1,16 @@
 #version 450
 
-layout (location = 0) in vec3 inPos;
-layout (location = 0) out vec4 outColor;
+layout (location = 0) in vec3 i_position;
+layout (location = 0) out vec4 o_color;
 
-layout (binding = 0) uniform samplerCube samplerEnv;
+layout (binding = 0) uniform samplerCube u_samplerEnv;
 
-layout(push_constant) uniform PushConsts {
+layout(push_constant) uniform PrefilterSettings {
 	layout (offset = 64) float roughness;
 	layout (offset = 68) uint numSamples;
-} consts;
+} pc_settings;
 
-
-// Constants
-const float PI = 3.1415926535897932384626433832795;
-const float epsilon = 1.175495e-38;
+#include "Common/Constants.glsl"
 
 // Hammersley sequence
 vec2 Hammersley(uint i, uint N) 
@@ -24,7 +21,7 @@ vec2 Hammersley(uint i, uint N)
 	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
 	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
 	float rdi = float(bits) * 2.3283064365386963e-10; // 0x100000000
-	return vec2(float(i) /float(N), rdi);
+	return vec2(float(i)/float(N), rdi);
 }
 
 // Importance sampling GGX
@@ -54,19 +51,19 @@ float NormalDistributionFunction(float dotNH, float roughness)
 	float denominator = dotNH * dotNH * (alphaSquare - 1.0) + 1.0;
 	denominator = PI * denominator * denominator;
 	
-	return alphaSquare / max(denominator, epsilon); // Prevent division by zero.
+	return alphaSquare / max(denominator, EPSILON); // Prevent division by zero.
 }
 
-vec3 prefilterEnvMap(vec3 R, float roughness)
+vec3 PrefilterEnvMap(vec3 R, float roughness)
 {
 	vec3 N = R;
 	vec3 V = R;
 
 	vec3 color = vec3(0.0);
 	float totalWeight = 0.0;
-	float envMapDim = float(textureSize(samplerEnv, 0).s);
-	for(uint i = 0u; i < consts.numSamples; i++) {
-		vec2 Xi = Hammersley(i, consts.numSamples);
+	float envMapDim = float(textureSize(u_samplerEnv, 0).s);
+	for(uint i = 0u; i < pc_settings.numSamples; i++) {
+		vec2 Xi = Hammersley(i, pc_settings.numSamples);
 		vec3 H = ImportanceSampleGGX(Xi, roughness, N);
 		vec3 L = 2.0 * dot(V, H) * H - V;
 		
@@ -76,14 +73,14 @@ vec3 prefilterEnvMap(vec3 R, float roughness)
 			float dotVH = clamp(dot(V, H), 0.0, 1.0);
 
 			// Probability Distribution Function
-			float pdf = NormalDistributionFunction(dotNH, roughness) * dotNH / (4.0 * dotVH) + epsilon;
+			float pdf = NormalDistributionFunction(dotNH, roughness) * dotNH / (4.0 * dotVH) + EPSILON;
 			// Solid angle of the current sample
-			float omegaS = 1.0 / (float(consts.numSamples) * pdf);
+			float omegaS = 1.0 / (float(pc_settings.numSamples) * pdf);
 			// Solid angle of 1 pixel across all cube faces
 			float omegaP = 4.0 * PI / (6.0 * envMapDim * envMapDim);
 			
-			float mipLevel = roughness == 0.0 ? 0.0 : clamp(0.5 * log2(omegaS / omegaP), 0.0f, float(textureQueryLevels(samplerEnv)-1));
-			color += textureLod(samplerEnv, L, mipLevel).rgb * dotNL;
+			float mipLevel = roughness == 0.0 ? 0.0 : clamp(0.5 * log2(omegaS / omegaP), 0.0f, float(textureQueryLevels(u_samplerEnv)-1));
+			color += textureLod(u_samplerEnv, L, mipLevel).rgb * dotNL;
 			totalWeight += dotNL;
 		}
 	}
@@ -94,6 +91,6 @@ vec3 prefilterEnvMap(vec3 R, float roughness)
 
 void main()
 {		
-	vec3 N = normalize(inPos);
-	outColor = vec4(prefilterEnvMap(N, consts.roughness), 1.0);
+	vec3 N = normalize(i_position);
+	o_color = vec4(PrefilterEnvMap(N, pc_settings.roughness), 1.0);
 }
