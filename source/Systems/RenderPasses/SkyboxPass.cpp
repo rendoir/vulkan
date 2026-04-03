@@ -8,7 +8,7 @@
 #include <Resources/Buffer.hpp>
 #include <Resources/Descriptor.hpp>
 #include <Resources/ImageResource.hpp>
-#include <Resources/ResourceHandle.hpp>
+#include <Resources/ResourceInFlight.hpp>
 #include <Systems/EntitySystem.hpp>
 #include <Systems/Renderer.hpp>
 #include <Systems/ResourceManager.hpp>
@@ -227,8 +227,8 @@ void SkyboxPass::ExecuteInternal(VkCommandBuffer commandBuffer, PassExecutionCon
     for (Primitive const& primitive : staticMesh.GetPrimitives())
     {
         std::vector<VkDescriptorSet> const descriptorsets = {
-            cameraResource.m_descriptorSet.GetResource().GetDescriptorSet(),
-            iblComponent.m_descriptorSet.GetResource().GetDescriptorSet(),
+            cameraResource.GetDescriptorSetInFlight().GetDescriptorSet(),
+            iblComponent.GetDescriptorSet().GetDescriptorSet(),
         };
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, descriptorsets.size(), descriptorsets.data(), 0, nullptr);
 

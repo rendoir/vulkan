@@ -335,8 +335,8 @@ SceneComponentResource::SceneComponentResource(SceneComponent const&)
     bufferCreationInfo.m_size = sizeof(UniformData);
     bufferCreationInfo.m_usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     bufferCreationInfo.m_memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    m_uniformBuffer = CreateResourceHandleInFlight<Buffer>(bufferCreationInfo);
-    m_descriptorSet = CreateResourceHandleInFlight<DescriptorSet>(SceneComponentResource::ms_bindings);
+    m_uniformBuffer = CreateResourceInFlight<Buffer>(bufferCreationInfo);
+    m_descriptorSet = CreateResourceInFlight<DescriptorSet>(SceneComponentResource::ms_bindings);
 
     Renderer const& renderer = Renderer::GetInstance();
 

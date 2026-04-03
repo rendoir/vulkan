@@ -1,8 +1,8 @@
 #include <Resources/AttachmentResource.hpp>
 
 AttachmentResource::AttachmentResource()
+    : m_image(std::make_shared<ImageResource>())
 {
-    m_image = std::make_shared<ImageResource>();
 }
 
 void AttachmentResource::Create()

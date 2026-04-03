@@ -49,8 +49,8 @@ public:
     SelfUpdatableBuffer(SelfUpdatableBuffer&& other) noexcept;
     SelfUpdatableBuffer& operator=(SelfUpdatableBuffer&& other) noexcept;
 
-    inline void MarkAsDirty() { m_isDirty = true; }
-    inline bool IsDirty() { return m_isDirty; }
+    void MarkAsDirty() { m_isDirty = true; }
+    bool IsDirty() { return m_isDirty; }
     void Update();
 
 private:

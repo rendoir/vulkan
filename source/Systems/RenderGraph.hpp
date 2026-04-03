@@ -41,9 +41,9 @@ public:
     virtual void OnSwapchainRecreated(VkExtent2D const& newExtent) override;
 
     // Getters
-    inline VkCommandBuffer& GetCommandBuffer(uint32_t const frameIndex) { return m_commandBuffers[frameIndex]; }
-    inline AttachmentResource& GetAttachmentResource(std::string const& name) { return *m_attachments[name]; }
-    inline TextureResource& GetTextureFromAttachmentResource(std::string const& name) { return *m_texturesFromAttachments[name]; }
+    VkCommandBuffer& GetCommandBuffer(uint32_t const frameIndex) { return m_commandBuffers[frameIndex]; }
+    AttachmentResource& GetAttachmentResource(std::string const& name) { return *m_attachments[name]; }
+    TextureResource& GetTextureFromAttachmentResource(std::string const& name) { return *m_texturesFromAttachments[name]; }
 
 protected:
     virtual void ExecuteInternal(VkCommandBuffer commandBuffer);

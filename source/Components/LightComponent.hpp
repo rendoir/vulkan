@@ -4,7 +4,7 @@
 #include <Resources/Descriptor.hpp>
 #include <Resources/Buffer.hpp>
 #include <Resources/ResourceComponent.hpp>
-#include <Resources/ResourceHandle.hpp>
+#include <Resources/ResourceInFlight.hpp>
 #include <Systems/ResourceSystem.hpp>
 #include <Utilities/Singleton.hpp>
 
@@ -35,7 +35,7 @@ public:
     LightComponentGlobalResource();
     
 public:
-    ResourceHandleInFlight<Buffer> m_uniformBuffer;
+    ResourceInFlight<Buffer> m_uniformBuffer;
 
     static const std::vector<VkDescriptorSetLayoutBinding> ms_bindings;
 };

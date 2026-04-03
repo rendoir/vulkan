@@ -122,7 +122,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 add_dependencies(${PROJECT_NAME} shaders)
 
 # Compiler options
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /wd4267 /wd4244)

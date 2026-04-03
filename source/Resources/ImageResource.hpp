@@ -32,15 +32,15 @@ public:
     void CreateImageView();
     void Destroy();
 
-    inline VkImage GetImage() const { return m_image; }
-    inline VkImageView GetImageView() const { return m_imageView; }
-    inline VkImageLayout GetCurrentLayout() const { return m_currentLayout; }
-    inline VkImageUsageFlags GetImageUsage() const { return m_imageUsage; }
-    inline bool NeedsRecreation() const { return m_needsRecreation; }
-    inline void SetNeedsRecreation() { m_needsRecreation = true; }
-    inline ImageCreateInfo GetCreationInfo() const { return m_creationInfo; }
-    inline void SetCreationInfo(ImageCreateInfo const& creationInfo) { m_creationInfo = creationInfo; }
-    inline void SetImage(VkImage image) { m_image = image; }
+    VkImage GetImage() const { return m_image; }
+    VkImageView GetImageView() const { return m_imageView; }
+    VkImageLayout GetCurrentLayout() const { return m_currentLayout; }
+    VkImageUsageFlags GetImageUsage() const { return m_imageUsage; }
+    bool NeedsRecreation() const { return m_needsRecreation; }
+    void SetNeedsRecreation() { m_needsRecreation = true; }
+    ImageCreateInfo GetCreationInfo() const { return m_creationInfo; }
+    void SetCreationInfo(ImageCreateInfo const& creationInfo) { m_creationInfo = creationInfo; }
+    void SetImage(VkImage image) { m_image = image; }
     
     bool IsValid() const;
     VkExtent2D GetExtent() const;

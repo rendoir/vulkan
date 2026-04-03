@@ -10,7 +10,7 @@
 #include <Resources/Buffer.hpp>
 #include <Resources/Descriptor.hpp>
 #include <Resources/ImageResource.hpp>
-#include <Resources/ResourceHandle.hpp>
+#include <Resources/ResourceInFlight.hpp>
 #include <Resources/TextureResource.hpp>
 #include <Systems/EntitySystem.hpp>
 #include <Systems/Renderer.hpp>
@@ -252,11 +252,11 @@ void ShadingPass::ExecuteInternal(VkCommandBuffer commandBuffer, PassExecutionCo
         for (Primitive const& primitive : staticMesh.GetPrimitives())
         {
             std::vector<VkDescriptorSet> const descriptorsets = {
-                cameraResource.m_descriptorSet.GetResource().GetDescriptorSet(),
-                sceneResource.m_descriptorSet.GetResource().GetDescriptorSet(),
-                primitive.m_material->m_descriptorSet.GetResource().GetDescriptorSet(),
+                cameraResource.GetDescriptorSetInFlight().GetDescriptorSet(),
+                sceneResource.GetDescriptorSetInFlight().GetDescriptorSet(),
+                primitive.m_material->m_descriptorSet.GetDescriptorSet(),
                 iblComponent->GetDescriptorSet().GetDescriptorSet(),
-                lightGlobalComponent->m_descriptorSet.GetResource().GetDescriptorSet()
+                lightGlobalComponent->GetDescriptorSetInFlight().GetDescriptorSet()
             };
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, descriptorsets.size(), descriptorsets.data(), 0, nullptr);
 

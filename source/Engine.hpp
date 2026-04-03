@@ -10,10 +10,10 @@ public:
     void Run();
 
     template<typename SystemType>
-    inline void AddEngineSystem() { m_engineSystems.push_back(&SystemType::GetInstance()); }
+    void AddEngineSystem() { m_engineSystems.push_back(&SystemType::GetInstance()); }
 
     template<typename SystemType>
-    inline void AddApplicationSystem() { m_applicationSystems.push_back(&SystemType::GetInstance()); }
+    void AddApplicationSystem() { m_applicationSystems.push_back(&SystemType::GetInstance()); }
     
 private:
     Engine();

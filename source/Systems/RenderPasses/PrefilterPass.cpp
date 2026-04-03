@@ -6,7 +6,7 @@
 #include <Resources/AttachmentResource.hpp>
 #include <Resources/Descriptor.hpp>
 #include <Resources/ImageResource.hpp>
-#include <Resources/ResourceHandle.hpp>
+#include <Resources/ResourceInFlight.hpp>
 #include <Resources/TextureResource.hpp>
 #include <Systems/EntitySystem.hpp>
 #include <Systems/Renderer.hpp>
@@ -239,7 +239,7 @@ void PrefilterPass::ExecuteInternal(VkCommandBuffer commandBuffer, PassExecution
     };
 
     std::vector<VkDescriptorSet> const descriptorsets = {
-        skyboxResource.m_descriptorSet.GetResource().GetDescriptorSet(),
+        skyboxResource.GetDescriptorSet().GetDescriptorSet(),
     };
 
     m_prefilteredCube->GetImage().TransitionLayout(

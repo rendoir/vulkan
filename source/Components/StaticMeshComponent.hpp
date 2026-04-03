@@ -3,7 +3,6 @@
 #include <Components/EntityComponent.hpp>
 #include <Resources/Buffer.hpp>
 #include <Resources/Descriptor.hpp>
-#include <Resources/ResourceHandle.hpp>
 #include <Utilities/Helpers.hpp>
 
 class TextureResource;
@@ -37,7 +36,7 @@ struct Material
     AlphaMode m_alphaMode = AlphaMode::Opaque;
     float m_alphaCutoff = 0.5f;
 
-    ResourceHandle<DescriptorSet> m_descriptorSet;
+    DescriptorSet m_descriptorSet;
     static const std::vector<VkDescriptorSetLayoutBinding> ms_bindings;
 
 public:

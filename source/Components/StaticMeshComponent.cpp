@@ -79,7 +79,7 @@ const std::vector<VkDescriptorSetLayoutBinding> Material::ms_bindings = {
 
 void Material::Init()
 {
-    m_descriptorSet = CreateResourceHandle<DescriptorSet>(Material::ms_bindings);
+    m_descriptorSet = DescriptorSet{Material::ms_bindings};
 
     VkDescriptorImageInfo const& emptyTextureDescriptor = ResourceManager::GetInstance().GetEmptyTexture().GetDescriptorInfo();
 
@@ -97,7 +97,7 @@ void Material::Init()
         writeDescriptorSets[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         writeDescriptorSets[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         writeDescriptorSets[i].descriptorCount = 1;
-        writeDescriptorSets[i].dstSet = m_descriptorSet.GetResource().GetDescriptorSet();
+        writeDescriptorSets[i].dstSet = m_descriptorSet.GetDescriptorSet();
         writeDescriptorSets[i].dstBinding = i;
         writeDescriptorSets[i].pImageInfo = &imageDescriptors[i];
     }

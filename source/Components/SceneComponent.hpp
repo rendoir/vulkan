@@ -4,7 +4,7 @@
 #include <Resources/Buffer.hpp>
 #include <Resources/Descriptor.hpp>
 #include <Resources/ResourceComponent.hpp>
-#include <Resources/ResourceHandle.hpp>
+#include <Resources/ResourceInFlight.hpp>
 #include <Systems/ResourceSystem.hpp>
 #include <Utilities/Singleton.hpp>
 
@@ -21,11 +21,11 @@ public:
     bool Detach();
 
     // Local transform
-    inline glm::vec3 const& GetLocalTranslation() const { return m_localTransform.GetTranslation(); }
-    inline glm::quat const& GetLocalRotation() const { return m_localTransform.GetRotation(); }
-    inline glm::vec3 const& GetLocalScale() const { return m_localTransform.GetScale(); }
-    inline glm::vec3 GetLocalEulerRotation() const { return m_localTransform.GetEulerRotation(); }
-    inline glm::mat4 const& GetLocalMatrix() { return m_localTransform.GetMatrix(); }
+    glm::vec3 const& GetLocalTranslation() const { return m_localTransform.GetTranslation(); }
+    glm::quat const& GetLocalRotation() const { return m_localTransform.GetRotation(); }
+    glm::vec3 const& GetLocalScale() const { return m_localTransform.GetScale(); }
+    glm::vec3 GetLocalEulerRotation() const { return m_localTransform.GetEulerRotation(); }
+    glm::mat4 const& GetLocalMatrix() { return m_localTransform.GetMatrix(); }
     void SetLocalTranslation(glm::vec3 const& translation);
     void SetLocalScale(glm::vec3 const& scale);
     void SetLocalRotation(glm::quat const& rotation);
@@ -49,9 +49,9 @@ private:
         Transform(glm::vec3 const& translation, glm::quat const& rotation, glm::vec3 const& scale);
 
         // Getters
-        inline glm::vec3 const& GetTranslation() const { return m_translation; }
-        inline glm::quat const& GetRotation() const { return m_rotation; }
-        inline glm::vec3 const& GetScale() const { return m_scale; }
+        glm::vec3 const& GetTranslation() const { return m_translation; }
+        glm::quat const& GetRotation() const { return m_rotation; }
+        glm::vec3 const& GetScale() const { return m_scale; }
         glm::vec3 GetEulerRotation() const;
 		glm::mat4 const& GetMatrix();
 
@@ -105,7 +105,7 @@ public:
     SceneComponentResource(SceneComponent const& scene);
     
 public:
-    ResourceHandleInFlight<Buffer> m_uniformBuffer;
+    ResourceInFlight<Buffer> m_uniformBuffer;
 
     static const std::vector<VkDescriptorSetLayoutBinding> ms_bindings;
 };

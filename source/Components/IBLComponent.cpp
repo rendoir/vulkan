@@ -10,8 +10,8 @@ const std::vector<VkDescriptorSetLayoutBinding> IBLComponent::ms_bindings = {
 };
 
 IBLComponent::IBLComponent()
+    : ComponentResource(IBLComponent::ms_bindings)
 {
-    m_descriptorSet = CreateResourceHandle<DescriptorSet>(IBLComponent::ms_bindings);
 }
 
 void IBLComponent::SetBrdflut(TextureResource& brdflutImage)
@@ -24,7 +24,7 @@ void IBLComponent::SetBrdflut(TextureResource& brdflutImage)
     writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     writeDescriptorSet.descriptorCount = 1;
-    writeDescriptorSet.dstSet = m_descriptorSet.GetResource().GetDescriptorSet();
+    writeDescriptorSet.dstSet = m_descriptorSet.GetDescriptorSet();
     writeDescriptorSet.dstBinding = 0;
     writeDescriptorSet.pImageInfo = &descriptorInfo;
 
@@ -43,7 +43,7 @@ void IBLComponent::SetIrradiance(SharedPtr<TextureResource>& irradianceImage)
     writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     writeDescriptorSet.descriptorCount = 1;
-    writeDescriptorSet.dstSet = m_descriptorSet.GetResource().GetDescriptorSet();
+    writeDescriptorSet.dstSet = m_descriptorSet.GetDescriptorSet();
     writeDescriptorSet.dstBinding = 1;
     writeDescriptorSet.pImageInfo = &descriptorInfo;
 
@@ -62,7 +62,7 @@ void IBLComponent::SetPrefiltered(SharedPtr<TextureResource>& prefilteredImage)
     writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     writeDescriptorSet.descriptorCount = 1;
-    writeDescriptorSet.dstSet = m_descriptorSet.GetResource().GetDescriptorSet();
+    writeDescriptorSet.dstSet = m_descriptorSet.GetDescriptorSet();
     writeDescriptorSet.dstBinding = 2;
     writeDescriptorSet.pImageInfo = &descriptorInfo;
 

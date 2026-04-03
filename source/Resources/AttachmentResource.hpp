@@ -20,22 +20,22 @@ public:
     AttachmentResource(AttachmentResource const&) = delete;
     AttachmentResource& operator=(AttachmentResource const&) = delete;
 
-    inline SharedPtr<AttachmentResource> GetSharedPtr() { return shared_from_this(); }
+    SharedPtr<AttachmentResource> GetSharedPtr() { return shared_from_this(); }
 
     void Create();
     void Destroy();
 
-    inline AttachmentCreationInfo const& GetCreationInfo() const { return m_creationInfo; }
-    inline ImageCreateInfo const& GetImageCreationInfo() const { return m_creationInfo.m_imageCreateInfo; }
-    inline void SetReadInPass(uint64_t passId) { m_readInPasses.insert(passId); }
-    inline void SetWrittenInPass(uint64_t passId) { m_writtenInPasses.insert(passId); }
-    inline ImageResource const& GetImage() const { return *m_image; }
-    inline ImageResource& GetImage() { return *m_image; }
-    inline SharedPtr<ImageResource>& GetImagePtr() { return m_image; }
-    inline bool IsUsed() { return !m_writtenInPasses.empty() || !m_readInPasses.empty(); }
-    inline bool IsPersistent() { return m_isPersistent; }
+    AttachmentCreationInfo const& GetCreationInfo() const { return m_creationInfo; }
+    ImageCreateInfo const& GetImageCreationInfo() const { return m_creationInfo.m_imageCreateInfo; }
+    void SetReadInPass(uint64_t passId) { m_readInPasses.insert(passId); }
+    void SetWrittenInPass(uint64_t passId) { m_writtenInPasses.insert(passId); }
+    ImageResource const& GetImage() const { return *m_image; }
+    ImageResource& GetImage() { return *m_image; }
+    SharedPtr<ImageResource>& GetImagePtr() { return m_image; }
+    bool IsUsed() { return !m_writtenInPasses.empty() || !m_readInPasses.empty(); }
+    bool IsPersistent() { return m_isPersistent; }
     void SetCreationInfo(AttachmentCreationInfo const& creationInfo);
-    inline void SetIsPersistent(bool persistent) { m_isPersistent = persistent; }
+    void SetIsPersistent(bool persistent) { m_isPersistent = persistent; }
     VkClearValue GetClearValue() const;
     bool IsReadInPass(uint64_t passId) const;
     bool IsWrittenInPass(uint64_t passId) const;

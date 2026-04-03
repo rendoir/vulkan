@@ -15,8 +15,8 @@ LightComponentGlobalResource::LightComponentGlobalResource()
     bufferCreationInfo.m_size = sizeof(UniformData);
     bufferCreationInfo.m_usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     bufferCreationInfo.m_memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    m_uniformBuffer = CreateResourceHandleInFlight<Buffer>(bufferCreationInfo);
-    m_descriptorSet = CreateResourceHandleInFlight<DescriptorSet>(LightComponentGlobalResource::ms_bindings);
+    m_uniformBuffer = CreateResourceInFlight<Buffer>(bufferCreationInfo);
+    m_descriptorSet = CreateResourceInFlight<DescriptorSet>(LightComponentGlobalResource::ms_bindings);
 
     Renderer const& renderer = Renderer::GetInstance();
 

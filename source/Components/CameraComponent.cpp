@@ -65,8 +65,8 @@ CameraComponentResource::CameraComponentResource(CameraComponent const&)
     bufferCreationInfo.m_size = sizeof(UniformData);
     bufferCreationInfo.m_usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     bufferCreationInfo.m_memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    m_uniformBuffer = CreateResourceHandleInFlight<Buffer>(bufferCreationInfo);
-    m_descriptorSet = CreateResourceHandleInFlight<DescriptorSet>(CameraComponentResource::ms_bindings);
+    m_uniformBuffer = CreateResourceInFlight<Buffer>(bufferCreationInfo);
+    m_descriptorSet = CreateResourceInFlight<DescriptorSet>(CameraComponentResource::ms_bindings);
 
     Renderer const& renderer = Renderer::GetInstance();
 

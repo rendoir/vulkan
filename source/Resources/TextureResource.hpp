@@ -37,20 +37,20 @@ public:
     TextureResource(TextureResource const&) = delete;
     TextureResource& operator=(TextureResource const&) = delete;
 
-    inline SharedPtr<TextureResource> GetSharedPtr() { return shared_from_this(); }
+    SharedPtr<TextureResource> GetSharedPtr() { return shared_from_this(); }
 
     void CreateFromImage(SharedPtr<ImageResource>& image);
     void Destroy();
 
-    inline TextureCreationInfo const& GetCreationInfo() const { return m_creationInfo; }
-    inline ImageCreateInfo const& GetImageCreationInfo() const { return m_creationInfo.m_imageCreateInfo; }
-    inline void SetCreationInfo(TextureCreationInfo const& creationInfo) { m_creationInfo = creationInfo; }
-    inline ImageResource const& GetImage() const { return *m_image; }
-    inline ImageResource& GetImage() { return *m_image; }
-    inline void SetReadInPass(uint64_t passId) { m_readInPasses.insert(passId); }
-    inline void SetIsPersistent(bool persistent) { m_isPersistent = persistent; }
-    inline bool IsUsed() { return !m_readInPasses.empty(); }
-    inline bool IsPersistent() { return m_isPersistent; }
+    TextureCreationInfo const& GetCreationInfo() const { return m_creationInfo; }
+    ImageCreateInfo const& GetImageCreationInfo() const { return m_creationInfo.m_imageCreateInfo; }
+    void SetCreationInfo(TextureCreationInfo const& creationInfo) { m_creationInfo = creationInfo; }
+    ImageResource const& GetImage() const { return *m_image; }
+    ImageResource& GetImage() { return *m_image; }
+    void SetReadInPass(uint64_t passId) { m_readInPasses.insert(passId); }
+    void SetIsPersistent(bool persistent) { m_isPersistent = persistent; }
+    bool IsUsed() { return !m_readInPasses.empty(); }
+    bool IsPersistent() { return m_isPersistent; }
     bool IsValid() const;
     VkDescriptorImageInfo GetDescriptorInfo() const;
 

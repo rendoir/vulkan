@@ -21,7 +21,6 @@ class TestSystem : public System, public Singleton<TestSystem>
 {
 public:
     virtual void Init() override;
-    virtual void Update() override;
 };
 
 int main(int, char*[])
@@ -70,52 +69,4 @@ void TestSystem::Init()
     lightScene1.SetWorldTranslation(glm::vec3(-1.0f, 1.0f, 1.0f));
 
     //SharedPtr<TextureResource> uvGridTexture = Loader::GetInstance().LoadTexture2D("resources/textures/uv_grid.jpg");
-}
-
-void TestSystem::Update()
-{
-    //EntitySystem& entitySystem = EntitySystem::GetInstance();
-    //Renderer& renderer = Renderer::GetInstance();
-
-    /*
-    auto const& view = entitySystem.GetView<SceneComponent>(entt::exclude_t<CameraComponent, LightComponent>());
-    for (entt::entity e : view)
-    {
-        if (renderer.GetKey(GLFW_KEY_W) == GLFW_PRESS)
-        {
-            SceneComponent& scene = view.Get<SceneComponent>(e);
-            if (EntitySystem::IsEntityValid(scene.GetParent()))
-            {
-                continue;
-            }
-
-            glm::quat deltaQuat = glm::quat(glm::vec3(0.0f, 0.001f, 0.0f));
-            scene.SetWorldRotation(scene.GetWorldRotation() * deltaQuat);
-            scene.SetWorldTranslation(scene.GetWorldTranslation() + glm::vec3(0.001f, 0.0f, 0.0f));
-        }
-    }
-    */
-
-    /*
-    if (renderer.GetKey(GLFW_KEY_Z) == GLFW_PRESS)
-    {
-        renderer.GetRenderGraph()->AddPass<ShadingPass>("shading");
-    }
-
-    if (renderer.GetKey(GLFW_KEY_X) == GLFW_PRESS)
-    {
-        renderer.GetRenderGraph()->RemovePass("shading");
-    }
-    */
-
-    /*
-    if (renderer.GetKey(GLFW_KEY_L) == GLFW_PRESS)
-    {
-        Entity lightEntity = entitySystem.CreateEntity();
-        LightComponent& light = entitySystem.AddComponent<LightComponent>(lightEntity);
-        light.m_color = glm::vec3(0.0f, 1.0f, 0.0f);
-        SceneComponent& lightScene = entitySystem.AddComponent<SceneComponent>(lightEntity);
-        lightScene.SetWorldTranslation(glm::vec3(0.0f, 1.0f, 1.0f));
-    }
-    */
 }

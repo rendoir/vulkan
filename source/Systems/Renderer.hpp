@@ -48,22 +48,22 @@ public:
     bool ShouldExit() const;
 
     // Getters
-    inline VkDevice GetDevice() const { return m_device; }
-    inline VmaAllocator GetAllocator() const { return m_allocator; }
-    inline RenderGraph const* GetRenderGraph() const { return &m_renderGraph; }
-    inline RenderGraph* GetRenderGraph() { return &m_renderGraph; }
-    inline ImageResource& GetCurrentSwapchainImage() { return m_swapchainImages[m_currentImageIndex]; }
-    inline uint32_t GetNumberOfSwapchainImages() const { return m_swapchainImages.size(); }
-    inline uint16_t GetCurrentFrame() const { return m_currentFrame; }
-    inline VkFormat GetSwapchainFormat() const { return m_swapchainImageFormat.format; }
-    inline VkExtent2D GetSwapchainExtent() const { return m_swapchainExtent; }
-    inline VkPipelineCache GetPipelineCache() const { return m_pipelineCache; }
-    inline void GetMouseCursorPosition(double& xPosition, double& yPosition) const { glfwGetCursorPos(m_window, &xPosition, &yPosition); }
-    inline int32_t GetMouseButton(int32_t button) const { return glfwGetMouseButton(m_window, button); }
-    inline int32_t GetKey(int32_t key) const { return glfwGetKey(m_window, key); }
-    inline PhysicalDeviceInfo const& GetPhysicalDeviceInfo() const { return m_physicalDeviceInfo; }
-    inline RenderSettings const& GetRenderSettings() const { return m_renderSettings; }
-    inline std::vector<ImageResource> const& GetSwapchainImages() const { return m_swapchainImages; }
+    VkDevice GetDevice() const { return m_device; }
+    VmaAllocator GetAllocator() const { return m_allocator; }
+    RenderGraph const* GetRenderGraph() const { return &m_renderGraph; }
+    RenderGraph* GetRenderGraph() { return &m_renderGraph; }
+    ImageResource& GetCurrentSwapchainImage() { return m_swapchainImages[m_currentImageIndex]; }
+    uint32_t GetNumberOfSwapchainImages() const { return m_swapchainImages.size(); }
+    uint16_t GetCurrentFrame() const { return m_currentFrame; }
+    VkFormat GetSwapchainFormat() const { return m_swapchainImageFormat.format; }
+    VkExtent2D GetSwapchainExtent() const { return m_swapchainExtent; }
+    VkPipelineCache GetPipelineCache() const { return m_pipelineCache; }
+    void GetMouseCursorPosition(double& xPosition, double& yPosition) const { glfwGetCursorPos(m_window, &xPosition, &yPosition); }
+    int32_t GetMouseButton(int32_t button) const { return glfwGetMouseButton(m_window, button); }
+    int32_t GetKey(int32_t key) const { return glfwGetKey(m_window, key); }
+    PhysicalDeviceInfo const& GetPhysicalDeviceInfo() const { return m_physicalDeviceInfo; }
+    RenderSettings const& GetRenderSettings() const { return m_renderSettings; }
+    std::vector<ImageResource> const& GetSwapchainImages() const { return m_swapchainImages; }
     VkSampleCountFlagBits GetRasterizationSampleCount() const;
     VkFormat ChooseDepthFormat(bool requireStencil = false) const;
     VkFormat ChooseBackbufferFormat() const;
@@ -72,8 +72,8 @@ public:
     static void GetAccessMasksForLayoutTransition(VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags& srcAccessMask, VkAccessFlags& dstAccessMask);
 
     // Observers
-    inline void AddSwapchainObserver(SwapchainObserver* observer) { m_swapchainObservers.push_back(observer); }
-    inline void RemoveSwapchainObserver(SwapchainObserver* observer) { EraseFirstMatch(m_swapchainObservers, observer); }
+    void AddSwapchainObserver(SwapchainObserver* observer) { m_swapchainObservers.push_back(observer); }
+    void RemoveSwapchainObserver(SwapchainObserver* observer) { EraseFirstMatch(m_swapchainObservers, observer); }
 
     // Helpers
     VkCommandBuffer BeginSingleUseCommandBuffer();

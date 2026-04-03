@@ -29,9 +29,9 @@ public:
     void Execute(VkCommandBuffer commandBuffer, ExecutionContext& context);
     virtual void Terminate();
 
-    inline std::string const& GetName() const { return m_name; }
+    std::string const& GetName() const { return m_name; }
     std::set<SharedPtr<AttachmentResource>> const& GetAttachments() const { return m_uniqueAttachments; }
-    inline void SetRenderGraph(RenderGraph* renderGraph) { m_renderGraph = renderGraph; }
+    void SetRenderGraph(RenderGraph* renderGraph) { m_renderGraph = renderGraph; }
 
     void AddColorOutputAttachment(std::string const& name, AttachmentCreationInfo const& attachmentInfo);
     void SetDepthStencilInputAttachment(std::string const& name);
