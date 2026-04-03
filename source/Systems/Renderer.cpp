@@ -147,8 +147,6 @@ void Renderer::CreateInstance()
 {
     if (m_renderSettings.m_useValidationLayers)
     {
-        SetEnvVariable("VK_LAYER_PATH", VK_LAYER_PATH);
-
         if (!CheckValidationLayerSupport())
         {
             ThrowError("Validation layers requested, but not available.");

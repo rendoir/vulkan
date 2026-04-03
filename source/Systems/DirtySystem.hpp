@@ -40,23 +40,8 @@ using GlobalDirtiableComponentsTypeList = TypeList<GLOBAL_DIRTIABLE_COMPONENTS>;
 class DirtySystem : public System, public Singleton<DirtySystem>
 {
 public:
-    template<
-        typename Component,
-        std::enable_if_t<!TypelistContainsType<Component>(DirtiableComponentsTypeList{}) && !TypelistContainsType<Component>(GlobalDirtiableComponentsTypeList{}), bool> = true
-    >
-    inline void MarkComponentAsDirty(entt::entity) { /*Component is not dirtiable*/ }
-
-    template<
-        typename Component,
-        std::enable_if_t<TypelistContainsType<Component>(DirtiableComponentsTypeList{}), bool> = true
-    >
-    void MarkComponentAsDirty(entt::entity entity);
-
-    template<
-        typename Component,
-        std::enable_if_t<TypelistContainsType<Component>(GlobalDirtiableComponentsTypeList{}), bool> = true
-    >
-    void MarkComponentAsDirty(entt::entity entity);
+    template<typename Component>
+    void MarkComponentAsDirty(entt::entity);
 
     virtual void Update() override;
 
@@ -70,27 +55,21 @@ private:
 
 #include <Systems/EntitySystem.hpp>
 
-template<
-    typename Component,
-    std::enable_if_t<TypelistContainsType<Component>(DirtiableComponentsTypeList{}), bool>
->
+template<typename Component>
 void DirtySystem::MarkComponentAsDirty(entt::entity entity)
 {
-    // Component is dirtiable
-    auto& dirtyComponent = EntitySystem::GetInstance().GetOrAddComponent<typename DirtyComponentMap<Component>::Type>(entity);
-    dirtyComponent.m_dirtyCounter = Renderer::RenderSettings::m_maxFramesInFlight;
-}
-
-template<
-    typename Component,
-    std::enable_if_t<TypelistContainsType<Component>(GlobalDirtiableComponentsTypeList{}), bool>
->
-void DirtySystem::MarkComponentAsDirty(entt::entity)
-{
-    // Component is globally dirtiable
-    EntitySystem& entitySystem = EntitySystem::GetInstance();
-    auto& dirtyComponent = entitySystem.GetOrAddComponent<typename DirtyComponentMap<Component>::Type>(entitySystem.GetGlobalEntity());
-    dirtyComponent.m_dirtyCounter = Renderer::RenderSettings::m_maxFramesInFlight;
+    if constexpr (TypelistContainsType<Component>(DirtiableComponentsTypeList{}))
+    {
+        auto& dirtyComponent = EntitySystem::GetInstance().GetOrAddComponent<typename DirtyComponentMap<Component>::Type>(entity);
+        dirtyComponent.m_dirtyCounter = Renderer::RenderSettings::m_maxFramesInFlight;
+    }
+    else if constexpr (TypelistContainsType<Component>(GlobalDirtiableComponentsTypeList{}))
+    {
+        EntitySystem& entitySystem = EntitySystem::GetInstance();
+        auto& dirtyComponent = entitySystem.GetOrAddComponent<typename DirtyComponentMap<Component>::Type>(entitySystem.GetGlobalEntity());
+        dirtyComponent.m_dirtyCounter = Renderer::RenderSettings::m_maxFramesInFlight;
+    }
+    // else: Component is not dirtiable, do nothing
 }
 
 template<typename... DirtiableComponents>
