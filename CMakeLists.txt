@@ -1,17 +1,76 @@
 cmake_minimum_required(VERSION 3.23)
 project(roar)
+include(FetchContent)
 
 # ----- Third Party -----
 find_package(Vulkan REQUIRED)
 find_program(GLSLC glslc REQUIRED)
 
-set(EXTERNAL_PATH ${PROJECT_SOURCE_DIR}/external)
+# ----- Dependencies -----
 
-# GLFW
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Skip GLFW examples" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Skip GLFW tests" FORCE)
-set(GLFW_BUILD_DOCS  OFF CACHE BOOL "Skip GLFW documentation" FORCE)
-add_subdirectory(${EXTERNAL_PATH}/glfw)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "Skip GLFW documentation" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "Skip GLFW install" FORCE)
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.4
+)
+
+set(GLM_TEST_ENABLE OFF CACHE BOOL "Skip GLM install" FORCE)
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.3
+)
+
+set(ENTT_BUILD_TESTING OFF CACHE BOOL "Skip ENTT install" FORCE)
+FetchContent_Declare(
+    entt
+    GIT_REPOSITORY https://github.com/skypjack/entt.git
+    GIT_TAG v3.16.0
+)
+
+set(JSON_BuildTests OFF CACHE BOOL "Skip JSON tests" FORCE)
+set(JSON_Install OFF CACHE BOOL "Skip JSON install" FORCE)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.12.0
+)
+
+set(TINYGLTF_BUILD_LOADER_EXAMPLE OFF CACHE BOOL "Skip TinyGLTF example" FORCE)
+set(TINYGLTF_BUILD_GL_EXAMPLES OFF CACHE BOOL "Skip TinyGLTF example" FORCE)
+FetchContent_Declare(
+    tinygltf
+    GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+    GIT_TAG v3.0.0
+)
+
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    GIT_TAG master
+)
+
+set(BOOST_PREPROCESSOR_BUILD_TESTS OFF CACHE BOOL "Skip Boost.Preprocessor tests" FORCE)
+FetchContent_Declare(
+    boost_preprocessor
+    GIT_REPOSITORY https://github.com/boostorg/preprocessor.git
+    GIT_TAG boost-1.90.0
+)
+
+FetchContent_MakeAvailable(
+    glfw
+    glm
+    entt
+    json
+    tinygltf
+    stb
+    boost_preprocessor
+)
+
 
 # ----- Source -----
 
@@ -40,19 +99,26 @@ file(GLOB_RECURSE SOURCE_FILES ${SOURCE_PATH}/*.cpp ${SOURCE_PATH}/*.c ${SOURCE_
 
 # Project
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOURCE_PATH})
-target_include_directories(${PROJECT_NAME} PUBLIC ${EXTERNAL_PATH}/boost.preprocessor/include)
-target_include_directories(${PROJECT_NAME} PUBLIC ${EXTERNAL_PATH}/glfw/include)
-target_include_directories(${PROJECT_NAME} PUBLIC ${EXTERNAL_PATH}/glm)
-target_include_directories(${PROJECT_NAME} PUBLIC ${EXTERNAL_PATH}/entt/src)
-target_include_directories(${PROJECT_NAME} PUBLIC ${EXTERNAL_PATH}/json/include)
-target_include_directories(${PROJECT_NAME} PUBLIC ${EXTERNAL_PATH}/stb)
-target_include_directories(${PROJECT_NAME} PUBLIC ${EXTERNAL_PATH}/tinygltf)
 target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${stb_SOURCE_DIR}
+    ${tinygltf_SOURCE_DIR}
+    ${boost_preprocessor_SOURCE_DIR}/include
+)
+
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${SOURCE_PATH}/PCH.hpp)
 target_compile_definitions(${PROJECT_NAME} PUBLIC SPIRV_SHADER_PATH="${SPIRV_SHADER_PATH}")
-target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Vulkan::Vulkan
+    glfw
+    glm
+    EnTT::EnTT
+    nlohmann_json::nlohmann_json
+)
+
 add_dependencies(${PROJECT_NAME} shaders)
 
 # Compiler options

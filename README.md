@@ -52,7 +52,7 @@ The specular term also requires the pre-computation of two maps: a BRDF Lookup t
 ### Getting started
 Clone the repository
 ```sh
-git clone --recursive https://github.com/rendoir/vulkan.git
+git clone https://github.com/rendoir/vulkan.git
 ```
 Configure the project
 ```sh

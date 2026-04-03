@@ -106,7 +106,7 @@ public:
     inline void RemoveOnDestroyEvent(ValueOrInstance& valueOrInstance);
 
     template<typename... Component, typename... Exclude>
-    inline decltype(auto) GetView(entt::exclude_t<Exclude...> = {});
+    inline decltype(auto) GetView(entt::exclude_t<Exclude...> = entt::exclude_t{});
 
     inline entt::entity GetGlobalEntity() const { return m_globalEntity; }
 
