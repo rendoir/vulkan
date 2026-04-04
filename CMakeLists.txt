@@ -54,13 +54,6 @@ FetchContent_Declare(
     GIT_TAG master
 )
 
-set(BOOST_PREPROCESSOR_BUILD_TESTS OFF CACHE BOOL "Skip Boost.Preprocessor tests" FORCE)
-FetchContent_Declare(
-    boost_preprocessor
-    GIT_REPOSITORY https://github.com/boostorg/preprocessor.git
-    GIT_TAG boost-1.90.0
-)
-
 FetchContent_MakeAvailable(
     glfw
     glm
@@ -68,7 +61,6 @@ FetchContent_MakeAvailable(
     json
     tinygltf
     stb
-    boost_preprocessor
 )
 
 
@@ -105,7 +97,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${stb_SOURCE_DIR}
     ${tinygltf_SOURCE_DIR}
-    ${boost_preprocessor_SOURCE_DIR}/include
 )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${SOURCE_PATH}/PCH.hpp)

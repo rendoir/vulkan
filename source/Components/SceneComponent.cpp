@@ -1,6 +1,5 @@
 #include <Components/SceneComponent.hpp>
 
-#include <Systems/DirtySystem.hpp>
 #include <Systems/EntitySystem.hpp>
 #include <Systems/Renderer.hpp>
 
@@ -106,7 +105,7 @@ void SceneComponent::SetLocalEulerRotation(glm::vec3 const& eulerRotation)
     InvalidateWorldTransformRecursively();
 }
 
-glm::mat4 const& SceneComponent::GetWorldMatrix()
+glm::mat4 const& SceneComponent::GetWorldMatrix() const
 {
     if (m_isWorldTransformDirty)
     {
@@ -116,7 +115,7 @@ glm::mat4 const& SceneComponent::GetWorldMatrix()
     return m_worldTransform.GetMatrix();
 }
 
-glm::vec3 const& SceneComponent::GetWorldTranslation()
+glm::vec3 const& SceneComponent::GetWorldTranslation() const
 {
     if (m_isWorldTransformDirty)
     {
@@ -126,7 +125,7 @@ glm::vec3 const& SceneComponent::GetWorldTranslation()
     return m_worldTransform.GetTranslation();
 }
 
-glm::quat const& SceneComponent::GetWorldRotation()
+glm::quat const& SceneComponent::GetWorldRotation() const
 {
     if (m_isWorldTransformDirty)
     {
@@ -136,7 +135,7 @@ glm::quat const& SceneComponent::GetWorldRotation()
     return m_worldTransform.GetRotation();
 }
 
-glm::vec3 SceneComponent::GetWorldEulerRotation()
+glm::vec3 SceneComponent::GetWorldEulerRotation() const
 {
     if (m_isWorldTransformDirty)
     {
@@ -146,7 +145,7 @@ glm::vec3 SceneComponent::GetWorldEulerRotation()
     return m_worldTransform.GetEulerRotation();
 }
 
-glm::vec3 const& SceneComponent::GetWorldScale()
+glm::vec3 const& SceneComponent::GetWorldScale() const
 {
     if (m_isWorldTransformDirty)
     {
@@ -207,7 +206,7 @@ void SceneComponent::SetWorldEulerRotation(glm::vec3 const& eulerRotation)
     SetWorldRotation(glm::quat(eulerRotation));
 }
 
-void SceneComponent::CalculateWorldTransform()
+void SceneComponent::CalculateWorldTransform() const
 {
     if (EntitySystem::IsEntityValid(m_parent))
     {
@@ -256,7 +255,7 @@ glm::vec3 SceneComponent::Transform::GetEulerRotation() const
     return glm::eulerAngles(m_rotation);
 }
 
-glm::mat4 const& SceneComponent::Transform::GetMatrix()
+glm::mat4 const& SceneComponent::Transform::GetMatrix() const
 {
     if (m_isMatrixDirty)
     {
@@ -266,7 +265,7 @@ glm::mat4 const& SceneComponent::Transform::GetMatrix()
     return m_matrix;
 }
 
-void SceneComponent::Transform::CalculateMatrix()
+void SceneComponent::Transform::CalculateMatrix() const
 {
     glm::mat4 const translationMatrix = glm::translate(glm::mat4(1.0f), m_translation);
     glm::mat4 const rotationMatrix = glm::toMat4(m_rotation);
@@ -365,14 +364,14 @@ SceneComponentResource::SceneComponentResource(SceneComponent const&)
 void SceneResourceSystem::Update()
 {
     EntitySystem& entitySystem = EntitySystem::GetInstance();
-    auto const& sceneDirtyView = entitySystem.GetView<SceneComponentResource, const SceneComponent, const DirtySceneComponent>();
-    for (entt::entity entity : sceneDirtyView)
+    auto const& view = entitySystem.GetView<SceneComponentResource, const SceneComponent>();
+    for (entt::entity entity : view)
     {
-        SceneComponentResource& resourceComponent = sceneDirtyView.Get<SceneComponentResource>(entity);
-        SceneComponent& sceneComponent = const_cast<SceneComponent&>(sceneDirtyView.Get<const SceneComponent>(entity));
+        SceneComponentResource& resourceComponent = view.Get<SceneComponentResource>(entity);
+        SceneComponent const& sceneComponent = view.Get<const SceneComponent>(entity);
 
         SceneComponentResource::UniformData data;
-        data.m_worldMatrix = const_cast<SceneComponent&>(sceneComponent).GetWorldMatrix();
+        data.m_worldMatrix = sceneComponent.GetWorldMatrix();
 
         Buffer& buffer = resourceComponent.m_uniformBuffer.GetResource();
         buffer.CopyDataToBuffer(&data, sizeof(SceneComponentResource::UniformData));

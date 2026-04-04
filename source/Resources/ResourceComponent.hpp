@@ -1,14 +1,10 @@
 #pragma once
 
+#include <Components/EntityComponent.hpp>
 #include <Resources/ResourceInFlight.hpp>
 #include <Resources/Descriptor.hpp>
-#include <Systems/EntitySystem.hpp>
 
-class ComponentResourceBase : public EntityComponent
-{
-};
-
-class ComponentResource : public ComponentResourceBase
+class ComponentResource : public EntityComponent
 {
 public:
     explicit ComponentResource(std::vector<VkDescriptorSetLayoutBinding> const& bindings)
@@ -20,7 +16,7 @@ protected:
     DescriptorSet m_descriptorSet;
 };
 
-class ComponentResourceInFlight : public ComponentResourceBase
+class ComponentResourceInFlight : public EntityComponent
 {
 public:
     const DescriptorSet& GetDescriptorSetInFlight() const { return m_descriptorSet.GetResource(); }

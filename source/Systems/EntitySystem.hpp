@@ -5,8 +5,6 @@
 
 using Entity = entt::entity;
 
-class DirtySystem;
-
 template<typename ViewType>
 class View
 {
@@ -20,12 +18,7 @@ public:
     View& operator=(View&&) noexcept = default;
 
     template <typename Component>
-    inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-    Get(Entity entity) const;
-
-    template <typename Component>
-    inline std::enable_if_t<std::is_const<Component>::value, Component&>
-    Get(Entity entity) const;
+    inline Component& Get(Entity entity) const;
 
     inline decltype(auto) begin() const noexcept { return m_rawView.begin(); }
     inline decltype(auto) end() const noexcept { return m_rawView.end(); }
@@ -51,44 +44,19 @@ public:
     inline bool HasComponent(entt::entity entity);
     
     template<class Component>
-    inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-    GetComponent(entt::entity entity);
+    inline Component& GetComponent(entt::entity entity);
 
     template<class Component>
-    inline std::enable_if_t<std::is_const<Component>::value, Component&>
-    GetComponent(entt::entity entity);
-
-    template<class Component>
-    inline std::enable_if_t<!std::is_const<Component>::value, Component*>
-    TryGetComponent(entt::entity entity);
-
-    template<class Component>
-    inline std::enable_if_t<std::is_const<Component>::value, Component*>
-    TryGetComponent(entt::entity entity);
+    inline Component* TryGetComponent(entt::entity entity);
     
     template<class Component, class... Args>
-    inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-    AddComponent(entt::entity entity, Args&&... args);
+    inline Component& AddComponent(entt::entity entity, Args&&... args);
 
     template<class Component, class... Args>
-    inline std::enable_if_t<std::is_const<Component>::value, Component&>
-    AddComponent(entt::entity entity, Args&&... args);
+    inline Component& AddOrReplaceComponent(entt::entity entity, Args&&... args);
 
     template<class Component, class... Args>
-    inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-    AddOrReplaceComponent(entt::entity entity, Args&&... args);
-
-    template<class Component, class... Args>
-    inline std::enable_if_t<std::is_const<Component>::value, Component&>
-    AddOrReplaceComponent(entt::entity entity, Args&&... args);
-
-    template<class Component, class... Args>
-    inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-    GetOrAddComponent(entt::entity entity, Args&&... args);
-
-    template<class Component, class... Args>
-    inline std::enable_if_t<std::is_const<Component>::value, Component&>
-    GetOrAddComponent(entt::entity entity, Args&&... args);
+    inline Component& GetOrAddComponent(entt::entity entity, Args&&... args);
     
     template<class Component>
     inline void RemoveComponent(entt::entity entity);
@@ -119,21 +87,9 @@ private:
     friend class Singleton<EntitySystem>;
 };
 
-#include <Systems/DirtySystem.hpp>
-
 template <typename ViewType>
 template <typename Component>
-inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-View<ViewType>::Get(Entity entity) const
-{ 
-    DirtySystem::GetInstance().MarkComponentAsDirty<Component>(entity);
-    return m_rawView.template get<Component>(entity);
-}
-
-template <typename ViewType>
-template <typename Component>
-inline std::enable_if_t<std::is_const<Component>::value, Component&>
-View<ViewType>::Get(Entity entity) const
+inline Component& View<ViewType>::Get(Entity entity) const
 { 
     return m_rawView.template get<Component>(entity);
 }
@@ -155,53 +111,19 @@ inline bool EntitySystem::HasComponent(entt::entity entity)
 }
 
 template<class Component>
-inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-EntitySystem::GetComponent(entt::entity entity)
-{
-    DirtySystem::GetInstance().MarkComponentAsDirty<Component>(entity);
-    return m_registry.get<Component>(entity);
-}
-
-template<class Component>
-inline std::enable_if_t<std::is_const<Component>::value, Component&>
-EntitySystem::GetComponent(entt::entity entity)
+inline Component& EntitySystem::GetComponent(entt::entity entity)
 {
     return m_registry.get<Component>(entity);
 }
 
 template<class Component>
-inline std::enable_if_t<!std::is_const<Component>::value, Component*>
-EntitySystem::TryGetComponent(entt::entity entity)
-{
-    Component* const component = m_registry.try_get<Component>(entity);
-    if (component)
-    {
-        DirtySystem::GetInstance().MarkComponentAsDirty<Component>(entity);
-    }
-
-    return component;
-}
-
-template<class Component>
-inline std::enable_if_t<std::is_const<Component>::value, Component*>
-EntitySystem::TryGetComponent(entt::entity entity)
+inline Component* EntitySystem::TryGetComponent(entt::entity entity)
 {
     return m_registry.try_get<Component>(entity);
 }
 
 template<class Component, class... Args>
-inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-EntitySystem::AddComponent(entt::entity entity, Args&&... args)
-{
-    Component& component = m_registry.emplace<Component>(entity, std::forward<Args>(args)...);
-    component.SetEntity(entity);
-    DirtySystem::GetInstance().MarkComponentAsDirty<Component>(entity);
-    return component;
-}
-
-template<class Component, class... Args>
-inline std::enable_if_t<std::is_const<Component>::value, Component&>
-EntitySystem::AddComponent(entt::entity entity, Args&&... args)
+inline Component& EntitySystem::AddComponent(entt::entity entity, Args&&... args)
 {
     Component& component = m_registry.emplace<Component>(entity, std::forward<Args>(args)...);
     component.SetEntity(entity);
@@ -209,18 +131,7 @@ EntitySystem::AddComponent(entt::entity entity, Args&&... args)
 }
 
 template<class Component, class... Args>
-inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-EntitySystem::AddOrReplaceComponent(entt::entity entity, Args&&... args)
-{
-    Component& component = m_registry.emplace_or_replace<Component>(entity, std::forward<Args>(args)...);
-    component.SetEntity(entity);
-    DirtySystem::GetInstance().MarkComponentAsDirty<Component>(entity);
-    return component;
-}
-
-template<class Component, class... Args>
-inline std::enable_if_t<std::is_const<Component>::value, Component&>
-EntitySystem::AddOrReplaceComponent(entt::entity entity, Args&&... args)
+inline Component& EntitySystem::AddOrReplaceComponent(entt::entity entity, Args&&... args)
 {
     Component& component = m_registry.emplace_or_replace<Component>(entity, std::forward<Args>(args)...);
     component.SetEntity(entity);
@@ -228,18 +139,7 @@ EntitySystem::AddOrReplaceComponent(entt::entity entity, Args&&... args)
 }
 
 template<class Component, class... Args>
-inline std::enable_if_t<!std::is_const<Component>::value, Component&>
-EntitySystem::GetOrAddComponent(entt::entity entity, Args&&... args)
-{
-    Component& component = m_registry.get_or_emplace<Component>(entity, std::forward<Args>(args)...);
-    component.SetEntity(entity);
-    DirtySystem::GetInstance().MarkComponentAsDirty<Component>(entity);
-    return component;
-}
-
-template<class Component, class... Args>
-inline std::enable_if_t<std::is_const<Component>::value, Component&>
-EntitySystem::GetOrAddComponent(entt::entity entity, Args&&... args)
+inline Component& EntitySystem::GetOrAddComponent(entt::entity entity, Args&&... args)
 {
     Component& component = m_registry.get_or_emplace<Component>(entity, std::forward<Args>(args)...);
     component.SetEntity(entity);

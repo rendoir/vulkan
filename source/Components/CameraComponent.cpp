@@ -1,7 +1,6 @@
 #include <Components/CameraComponent.hpp>
 
 #include <Components/SceneComponent.hpp>
-#include <Systems/DirtySystem.hpp>
 #include <Systems/EntitySystem.hpp>
 #include <Systems/Renderer.hpp>
 
@@ -29,7 +28,7 @@ void CameraComponent::SetAspectRatio(float aspectRatio)
     m_isPerspectiveMatrixDirty = true;
 }
 
-void CameraComponent::UpdatePerspectiveMatrix()
+void CameraComponent::UpdatePerspectiveMatrix() const
 {
     m_perspectiveMatrix = glm::perspective(m_fov, m_aspectRatio, m_near, m_far);
     m_perspectiveMatrix[1][1] *= -1;
@@ -37,7 +36,7 @@ void CameraComponent::UpdatePerspectiveMatrix()
     m_isPerspectiveMatrixDirty = false;
 }
 
-glm::mat4 CameraComponent::GetPerspectiveMatrix()
+glm::mat4 CameraComponent::GetPerspectiveMatrix() const
 {
     if (m_isPerspectiveMatrixDirty)
     {
@@ -107,36 +106,23 @@ void CameraResourceSystem::Terminate()
 void CameraResourceSystem::Update()
 {
     EntitySystem& entitySystem = EntitySystem::GetInstance();
-    auto const& cameraDirtyView = entitySystem.GetView<CameraComponentResource, const CameraComponent, const SceneComponent, const DirtyCameraComponent>();
-    for (entt::entity entity : cameraDirtyView)
+    auto const& cameraView = entitySystem.GetView<CameraComponentResource, const CameraComponent, const SceneComponent>();
+    for (entt::entity entity : cameraView)
     {
         UpdateCameraResource(
-            cameraDirtyView.Get<CameraComponentResource>(entity),
-            cameraDirtyView.Get<const CameraComponent>(entity),
-            cameraDirtyView.Get<const SceneComponent>(entity)
-        );
-    }
-    
-    auto const& sceneDirtyView = entitySystem.GetView<CameraComponentResource, const CameraComponent, const SceneComponent, const DirtySceneComponent>(entt::exclude<DirtyCameraComponent>);
-    for (entt::entity entity : sceneDirtyView)
-    {
-        UpdateCameraResource(
-            sceneDirtyView.Get<CameraComponentResource>(entity),
-            sceneDirtyView.Get<const CameraComponent>(entity),
-            sceneDirtyView.Get<const SceneComponent>(entity)
+            cameraView.Get<CameraComponentResource>(entity),
+            cameraView.Get<const CameraComponent>(entity),
+            cameraView.Get<const SceneComponent>(entity)
         );
     }
 }
 
 void CameraResourceSystem::UpdateCameraResource(CameraComponentResource& cameraResource, CameraComponent const& camera, SceneComponent const& scene)
 {
-    SceneComponent& sceneRef = const_cast<SceneComponent&>(scene);
-    CameraComponent& cameraRef = const_cast<CameraComponent&>(camera);
-
     CameraComponentResource::UniformData data;
-    data.m_projection = cameraRef.GetPerspectiveMatrix();
-    data.m_position = sceneRef.GetWorldTranslation();
-    data.m_view = cameraRef.GetViewMatrix(data.m_position, sceneRef.GetWorldRotation());
+    data.m_projection = camera.GetPerspectiveMatrix();
+    data.m_position = scene.GetWorldTranslation();
+    data.m_view = camera.GetViewMatrix(data.m_position, scene.GetWorldRotation());
 
     Buffer& buffer = cameraResource.m_uniformBuffer.GetResource();
     buffer.CopyDataToBuffer(&data, sizeof(CameraComponentResource::UniformData));

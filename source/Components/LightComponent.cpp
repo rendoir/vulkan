@@ -1,7 +1,6 @@
 #include <Components/LightComponent.hpp>
 
 #include <Components/SceneComponent.hpp>
-#include <Systems/DirtySystem.hpp>
 #include <Systems/EntitySystem.hpp>
 #include <Systems/Renderer.hpp>
 
@@ -42,70 +41,28 @@ LightComponentGlobalResource::LightComponentGlobalResource()
     }
 }
 
-void LightGlobalResourceSystem::Init()
-{
-    GlobalResourceSystem<LightComponentGlobalResource>::Init();
-
-    MarkLightComponentAsDirtyInternal();
-
-    EntitySystem& entitySystem = EntitySystem::GetInstance();
-    entitySystem.AddOnConstructEvent<LightComponent, &LightGlobalResourceSystem::MarkLightComponentAsDirty, LightGlobalResourceSystem>(*this);
-    entitySystem.AddOnDestroyEvent<LightComponent, &LightGlobalResourceSystem::MarkLightComponentAsDirty, LightGlobalResourceSystem>(*this);
-}
-
-void LightGlobalResourceSystem::Terminate()
-{
-    EntitySystem& entitySystem = EntitySystem::GetInstance();
-    entitySystem.RemoveOnConstructEvent<LightComponent, &LightGlobalResourceSystem::MarkLightComponentAsDirty, LightGlobalResourceSystem>(*this);
-    entitySystem.RemoveOnDestroyEvent<LightComponent, &LightGlobalResourceSystem::MarkLightComponentAsDirty, LightGlobalResourceSystem>(*this);
-
-    GlobalResourceSystem<LightComponentGlobalResource>::Terminate();
-}
-
 void LightGlobalResourceSystem::Update()
 {
     EntitySystem& entitySystem = EntitySystem::GetInstance();
+    auto const& view = entitySystem.GetView<SceneComponent const, LightComponent const>();
     
-    if (entitySystem.HasComponent<DirtyLightComponent>(entitySystem.GetGlobalEntity()))
-    {
-        auto const& view = entitySystem.GetView<SceneComponent const, LightComponent const>();
-        UpdateResourceData(view);    
-    }
-    else
-    {
-        // Lights are not dirty but their scene component might be
-        auto const& dirtyView = entitySystem.GetView<SceneComponent const, LightComponent const, DirtySceneComponent const>();
-        if (EntitySystem::IsEntityValid(dirtyView.front()))
-        {
-            auto const& view = entitySystem.GetView<SceneComponent const, LightComponent const>();
-            UpdateResourceData(view);
-        }
-    }
-}
-
-template<typename ViewType>
-void LightGlobalResourceSystem::UpdateResourceData(ViewType const& view)
-{
     LightComponentGlobalResource::UniformData data;
 
     data.m_nrLights = 0;
     for (entt::entity entity : view)
     {
         if (data.m_nrLights >= LightComponentGlobalResource::ms_maxNumberOfLights)
-        {
             break;
-        }
 
-        SceneComponent& scene = const_cast<SceneComponent&>(view.template Get<SceneComponent const>(entity));
-        LightComponent const& light = view.template Get<LightComponent const>(entity);
-    
+        SceneComponent const& scene = view.Get<SceneComponent const>(entity);
+        LightComponent const& light = view.Get<LightComponent const>(entity);
+
         data.m_lights[data.m_nrLights].m_color = glm::vec4(light.m_color, 1.0f);
         data.m_lights[data.m_nrLights].m_worldPosition = glm::vec4(scene.GetWorldTranslation(), 1.0f);
     
-        data.m_nrLights++;
+        ++data.m_nrLights;
     }
 
-    EntitySystem& entitySystem = EntitySystem::GetInstance();
     LightComponentGlobalResource& globalResource = entitySystem.GetComponent<LightComponentGlobalResource>(entitySystem.GetGlobalEntity());
 
     Buffer& buffer = globalResource.m_uniformBuffer.GetResource();
@@ -113,14 +70,4 @@ void LightGlobalResourceSystem::UpdateResourceData(ViewType const& view)
     memcpy(&mappedMemory->m_nrLights, &data.m_nrLights, sizeof(data.m_nrLights));
     memcpy(&mappedMemory->m_lights, &data.m_lights, sizeof(LightComponentGlobalResource::UniformData::LightUniformData) * data.m_nrLights);
     buffer.UnmapMemory();
-}
-
-void LightGlobalResourceSystem::MarkLightComponentAsDirtyInternal()
-{
-    DirtySystem::GetInstance().MarkComponentAsDirty<LightComponent>(EntitySystem::GetInstance().GetGlobalEntity());
-}
-
-void LightGlobalResourceSystem::MarkLightComponentAsDirty(entt::registry&, entt::entity)
-{
-    MarkLightComponentAsDirtyInternal();
 }

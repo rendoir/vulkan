@@ -21,11 +21,11 @@ public:
     void SetFollowResolutionAsAspectRatio(bool shouldFollow) { m_shouldFollowResolutionAsAspectRatio = shouldFollow; }
 
     bool GetFollowResolutionAsAspectRatio() const { return m_shouldFollowResolutionAsAspectRatio; }
-    glm::mat4 GetPerspectiveMatrix();
+    glm::mat4 GetPerspectiveMatrix() const;
     static glm::mat4 GetViewMatrix(glm::vec3 const& worldPosition, glm::quat const& worldRotation);
 
 private:
-    void UpdatePerspectiveMatrix();
+    void UpdatePerspectiveMatrix() const;
 
 protected:
     float m_fov = glm::radians(45.0f);
@@ -35,8 +35,8 @@ protected:
     bool m_shouldFollowResolutionAsAspectRatio = true;
 
 private:
-    glm::mat4 m_perspectiveMatrix;
-    bool m_isPerspectiveMatrixDirty = true;
+    mutable glm::mat4 m_perspectiveMatrix;
+    mutable bool m_isPerspectiveMatrixDirty = true;
 };
 
 class OrbitCameraControlComponent : public EntityComponent

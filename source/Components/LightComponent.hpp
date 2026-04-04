@@ -44,14 +44,5 @@ class LightGlobalResourceSystem
     : public GlobalResourceSystem<LightComponentGlobalResource>, public Singleton<LightGlobalResourceSystem>
 {
 public:
-    void Init() override;
     void Update() override;
-    void Terminate() override;
-
-private:
-    template<typename ViewType>
-    void UpdateResourceData(ViewType const& view);
-
-    void MarkLightComponentAsDirty(entt::registry& registry, entt::entity entity);
-    void MarkLightComponentAsDirtyInternal();
 };

@@ -49,7 +49,6 @@ void TestSystem::Init()
     entitySystem.AddComponent<CameraComponent>(camera);
     OrbitCameraControlComponent& orbitComponent = entitySystem.AddComponent<OrbitCameraControlComponent>(camera);
     orbitComponent.m_radius = 5.0f;
-    CameraControl::GetInstance().Update();
 
     SharedPtr<TextureResource> hdrCubeTexture = Loader::GetInstance().LoadTextureCubeHdr("resources/textures/papermill");
 

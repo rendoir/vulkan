@@ -4,7 +4,6 @@
 #include <Components/LightComponent.hpp>
 #include <Components/SceneComponent.hpp>
 #include <Components/SkyboxComponent.hpp>
-#include <Systems/DirtySystem.hpp>
 #include <Systems/EntitySystem.hpp>
 #include <Systems/Loader.hpp>
 #include <Systems/Renderer.hpp>
@@ -22,7 +21,6 @@ Engine::Engine()
     AddEngineSystem<CameraResourceSystem>();
     AddEngineSystem<SkyboxResourceSystem>();
     AddEngineSystem<LightGlobalResourceSystem>();
-    AddEngineSystem<DirtySystem>();
 }
 
 void Engine::Init()
